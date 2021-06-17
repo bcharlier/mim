@@ -2,41 +2,23 @@
 #define PCATOOLS_H
 
 
-
-
-
-
 #include <vector>
 
 
-
 #include <cassert>
-
 
 
 #include <gsl/gsl_math.h>
 #include <gsl/gsl_eigen.h>
 
 
-
-template< typename point_t , typename normal_t >
-        class std_diag_matrix3f
-{
+template<typename point_t, typename normal_t>
+class std_diag_matrix3f {
 public:
     double vals[9];
 
 
-    std_diag_matrix3f()
-    {
-        vals[0] = 0.f;
-        vals[1] = 0.f;
-        vals[2] = 0.f;
-        vals[4] = 0.f;
-        vals[5] = 0.f;
-        vals[8] = 0.f;
-    }
-    void clear()
-    {
+    std_diag_matrix3f() {
         vals[0] = 0.f;
         vals[1] = 0.f;
         vals[2] = 0.f;
@@ -45,47 +27,55 @@ public:
         vals[8] = 0.f;
     }
 
+    void clear() {
+        vals[0] = 0.f;
+        vals[1] = 0.f;
+        vals[2] = 0.f;
+        vals[4] = 0.f;
+        vals[5] = 0.f;
+        vals[8] = 0.f;
+    }
 
 
-    void diagonalize( float & lambdaX_ , float & lambdaY_ , float & lambdaZ_ , normal_t & RepX_ , normal_t & RepY_ , normal_t & RepZ_)
-    {
+    void
+    diagonalize(float &lambdaX_, float &lambdaY_, float &lambdaZ_, normal_t &RepX_, normal_t &RepY_, normal_t &RepZ_) {
         vals[3] = vals[1];
         vals[6] = vals[2];
         vals[7] = vals[5];
 
-        gsl_matrix_view m = gsl_matrix_view_array (vals, 3, 3);
+        gsl_matrix_view m = gsl_matrix_view_array(vals, 3, 3);
 
 
-        gsl_vector *eval = gsl_vector_alloc (3);
-        gsl_matrix *evec = gsl_matrix_alloc (3, 3);
-        gsl_eigen_symmv_workspace * w = gsl_eigen_symmv_alloc (3);
-        gsl_eigen_symmv (&m.matrix, eval, evec, w);
-        gsl_eigen_symmv_free (w);
-        gsl_eigen_symmv_sort (eval, evec, GSL_EIGEN_SORT_ABS_ASC);
+        gsl_vector *eval = gsl_vector_alloc(3);
+        gsl_matrix *evec = gsl_matrix_alloc(3, 3);
+        gsl_eigen_symmv_workspace *w = gsl_eigen_symmv_alloc(3);
+        gsl_eigen_symmv(&m.matrix, eval, evec, w);
+        gsl_eigen_symmv_free(w);
+        gsl_eigen_symmv_sort(eval, evec, GSL_EIGEN_SORT_ABS_ASC);
 
-        lambdaX_ = gsl_vector_get (eval, 0);
-        gsl_vector_view evec_i = gsl_matrix_column (evec, 0);
+        lambdaX_ = gsl_vector_get(eval, 0);
+        gsl_vector_view evec_i = gsl_matrix_column(evec, 0);
         RepX_ = normal_t(
-                gsl_vector_get (&evec_i.vector, 0),
-                gsl_vector_get (&evec_i.vector, 1),
-                gsl_vector_get (&evec_i.vector, 2)
-                );
+                gsl_vector_get(&evec_i.vector, 0),
+                gsl_vector_get(&evec_i.vector, 1),
+                gsl_vector_get(&evec_i.vector, 2)
+        );
 
-        lambdaY_ = gsl_vector_get (eval, 1);
-        evec_i = gsl_matrix_column (evec, 1);
+        lambdaY_ = gsl_vector_get(eval, 1);
+        evec_i = gsl_matrix_column(evec, 1);
         RepY_ = normal_t(
-                gsl_vector_get (&evec_i.vector, 0),
-                gsl_vector_get (&evec_i.vector, 1),
-                gsl_vector_get (&evec_i.vector, 2)
-                );
+                gsl_vector_get(&evec_i.vector, 0),
+                gsl_vector_get(&evec_i.vector, 1),
+                gsl_vector_get(&evec_i.vector, 2)
+        );
 
-        lambdaZ_ = gsl_vector_get (eval, 2);
-        evec_i = gsl_matrix_column (evec, 2);
+        lambdaZ_ = gsl_vector_get(eval, 2);
+        evec_i = gsl_matrix_column(evec, 2);
         RepZ_ = normal_t(
-                gsl_vector_get (&evec_i.vector, 0),
-                gsl_vector_get (&evec_i.vector, 1),
-                gsl_vector_get (&evec_i.vector, 2)
-                );
+                gsl_vector_get(&evec_i.vector, 0),
+                gsl_vector_get(&evec_i.vector, 1),
+                gsl_vector_get(&evec_i.vector, 2)
+        );
 
 
         //
@@ -156,63 +146,52 @@ public:
     }
 
 
-
-    void addPoint( const point_t & pi , float weight = 1.f )
-    {
-        vals[0] += weight*pi[0]*pi[0];
-        vals[1] += weight*pi[0]*pi[1];
-        vals[2] += weight*pi[0]*pi[2];
-        vals[4] += weight*pi[1]*pi[1];
-        vals[5] += weight*pi[1]*pi[2];
-        vals[8] += weight*pi[2]*pi[2];
+    void addPoint(const point_t &pi, float weight = 1.f) {
+        vals[0] += weight * pi[0] * pi[0];
+        vals[1] += weight * pi[0] * pi[1];
+        vals[2] += weight * pi[0] * pi[2];
+        vals[4] += weight * pi[1] * pi[1];
+        vals[5] += weight * pi[1] * pi[2];
+        vals[8] += weight * pi[2] * pi[2];
     }
 
 
-
-    void removePoint( const point_t & pi , float weight = 1.f )
-    {
-        vals[0] -= weight*pi[0]*pi[0];
-        vals[1] -= weight*pi[0]*pi[1];
-        vals[2] -= weight*pi[0]*pi[2];
-        vals[4] -= weight*pi[1]*pi[1];
-        vals[5] -= weight*pi[1]*pi[2];
-        vals[8] -= weight*pi[2]*pi[2];
+    void removePoint(const point_t &pi, float weight = 1.f) {
+        vals[0] -= weight * pi[0] * pi[0];
+        vals[1] -= weight * pi[0] * pi[1];
+        vals[2] -= weight * pi[0] * pi[2];
+        vals[4] -= weight * pi[1] * pi[1];
+        vals[5] -= weight * pi[1] * pi[2];
+        vals[8] -= weight * pi[2] * pi[2];
     }
 
 
-
-    void addNormal( const normal_t & pi )
-    {
-        vals[0] += pi[0]*pi[0];
-        vals[1] += pi[0]*pi[1];
-        vals[2] += pi[0]*pi[2];
-        vals[4] += pi[1]*pi[1];
-        vals[5] += pi[1]*pi[2];
-        vals[8] += pi[2]*pi[2];
+    void addNormal(const normal_t &pi) {
+        vals[0] += pi[0] * pi[0];
+        vals[1] += pi[0] * pi[1];
+        vals[2] += pi[0] * pi[2];
+        vals[4] += pi[1] * pi[1];
+        vals[5] += pi[1] * pi[2];
+        vals[8] += pi[2] * pi[2];
     }
 
 
-
-    void removeNormal( const normal_t & pi )
-    {
-        vals[0] -= pi[0]*pi[0];
-        vals[1] -= pi[0]*pi[1];
-        vals[2] -= pi[0]*pi[2];
-        vals[4] -= pi[1]*pi[1];
-        vals[5] -= pi[1]*pi[2];
-        vals[8] -= pi[2]*pi[2];
+    void removeNormal(const normal_t &pi) {
+        vals[0] -= pi[0] * pi[0];
+        vals[1] -= pi[0] * pi[1];
+        vals[2] -= pi[0] * pi[2];
+        vals[4] -= pi[1] * pi[1];
+        vals[5] -= pi[1] * pi[2];
+        vals[8] -= pi[2] * pi[2];
     }
 
 
-    float operator()( int i , int j ) const
-    {
-        return vals[i + 3*j];
+    float operator()(int i, int j) const {
+        return vals[i + 3 * j];
     }
 
 
-
-    void set( float xx , float yy , float zz , float xy , float yz , float xz )
-    {
+    void set(float xx, float yy, float zz, float xy, float yz, float xz) {
         vals[0] = xx;
         vals[1] = xy;
         vals[2] = xz;
@@ -222,8 +201,7 @@ public:
     }
 
 
-    void add( float xx , float yy , float zz , float xy , float yz , float xz )
-    {
+    void add(float xx, float yy, float zz, float xy, float yz, float xz) {
         vals[0] += xx;
         vals[1] += xy;
         vals[2] += xz;
@@ -233,9 +211,7 @@ public:
     }
 
 
-
-    void operator = ( const std_diag_matrix3f< point_t , normal_t > & c )
-                    {
+    void operator=(const std_diag_matrix3f<point_t, normal_t> &c) {
         vals[0] = c.vals[0];
         vals[1] = c.vals[1];
         vals[2] = c.vals[2];
@@ -245,8 +221,7 @@ public:
     }
 
 
-    void operator += ( const std_diag_matrix3f< point_t , normal_t > & c )
-                     {
+    void operator+=(const std_diag_matrix3f<point_t, normal_t> &c) {
         vals[0] += c.vals[0];
         vals[1] += c.vals[1];
         vals[2] += c.vals[2];
@@ -257,63 +232,53 @@ public:
 };
 
 
-
-
-
-
-
 using namespace std;
 
 
-namespace PCATools{
+namespace PCATools {
 
-    template< typename point_t , typename normal_t , typename matrix_t = std_diag_matrix3f< point_t , normal_t > >
-                                                                         class PCASolver3f
-                                                                         {
+    template<typename point_t, typename normal_t, typename matrix_t = std_diag_matrix3f<point_t, normal_t> >
+    class PCASolver3f {
     protected:
         point_t Origine_;
-        normal_t RepX_ , RepY_ , RepZ_;
-        float lambdaX_ , lambdaY_ , lambdaZ_;
+        normal_t RepX_, RepY_, RepZ_;
+        float lambdaX_, lambdaY_, lambdaZ_;
 
         matrix_t cov;
 
         bool _order_and_normalize;
 
     public:
-        PCASolver3f()
-        {
+        PCASolver3f() {
             _order_and_normalize = true;
-            Origine_ = point_t(0,0,0);
+            Origine_ = point_t(0, 0, 0);
             cov.clear();
         }
-        PCASolver3f( bool _o_a_n )
-        {
+
+        PCASolver3f(bool _o_a_n) {
             _order_and_normalize = _o_a_n;
-            Origine_ = point_t(0,0,0);
-            cov.clear();
-        }
-        ~PCASolver3f(){}
-
-        void clear()
-        {
-            Origine_ = point_t(0,0,0);
+            Origine_ = point_t(0, 0, 0);
             cov.clear();
         }
 
-        void order_and_normalize( bool _o_a_n )
-        {
+        ~PCASolver3f() {}
+
+        void clear() {
+            Origine_ = point_t(0, 0, 0);
+            cov.clear();
+        }
+
+        void order_and_normalize(bool _o_a_n) {
             _order_and_normalize = _o_a_n;
         }
 
-        void order_basis()
-        {
+        void order_basis() {
             float _l;
             normal_t _r;
 
             // WE ORDER THE BASIS THAT WAY :  lambdaX_ < lambdaY_ < lambdaZ_
 
-            if( lambdaY_ < lambdaX_ )
-            {
+            if (lambdaY_ < lambdaX_) {
                 _l = lambdaY_;
                 _r = RepY_;
 
@@ -324,8 +289,7 @@ namespace PCATools{
                 RepX_ = _r;
             }
 
-            if( lambdaZ_ < lambdaY_ )
-            {
+            if (lambdaZ_ < lambdaY_) {
                 _l = lambdaY_;
                 _r = RepY_;
 
@@ -337,67 +301,52 @@ namespace PCATools{
             }
         }
 
-        void diagonalize()
-        {
-            cov.diagonalize(lambdaX_ , lambdaY_ , lambdaZ_ , RepX_ , RepY_ , RepZ_);
+        void diagonalize() {
+            cov.diagonalize(lambdaX_, lambdaY_, lambdaZ_, RepX_, RepY_, RepZ_);
         }
 
-        void compute()
-        {
+        void compute() {
             this->diagonalize();
 
-            if( this->_order_and_normalize )
-            {
+            if (this->_order_and_normalize) {
                 RepX_.normalize();
-                RepZ_ = cross(RepX_ , RepY_);
+                RepZ_ = cross(RepX_, RepY_);
                 RepZ_.normalize();
-                RepY_ = cross(RepZ_ , RepX_);
+                RepY_ = cross(RepZ_, RepX_);
             }
         }
 
-        void addPoint( const point_t & p , float weight = 1.f )
-        {
-            const point_t & pi = p - Origine_;
+        void addPoint(const point_t &p, float weight = 1.f) {
+            const point_t &pi = p - Origine_;
 
-            cov.addPoint( pi , weight );
+            cov.addPoint(pi, weight);
         }
 
-        void removePoint( const point_t & p , float weight = 1.f )
-        {
-            const point_t & pi = p - Origine_;
+        void removePoint(const point_t &p, float weight = 1.f) {
+            const point_t &pi = p - Origine_;
 
-            cov.removePoint( pi , weight );
+            cov.removePoint(pi, weight);
         }
 
-        void setOrigine( const point_t & o ){ Origine_ = o; }
+        void setOrigine(const point_t &o) { Origine_ = o; }
 
-        normal_t RepX(){ return RepX_; }
-        normal_t RepY(){ return RepY_; }
-        normal_t RepZ(){ return RepZ_; }
-        float lambdaX(){ return lambdaX_; }
-        float lambdaY(){ return lambdaY_; }
-        float lambdaZ(){ return lambdaZ_; }
+        normal_t RepX() { return RepX_; }
+
+        normal_t RepY() { return RepY_; }
+
+        normal_t RepZ() { return RepZ_; }
+
+        float lambdaX() { return lambdaX_; }
+
+        float lambdaY() { return lambdaY_; }
+
+        float lambdaZ() { return lambdaZ_; }
 
     };
 
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-    template< typename point_t , typename normal_t , typename matrix_t = std_diag_matrix3f< point_t , normal_t > >
-                                                                         class DirectionSolver : public PCASolver3f< point_t , normal_t , matrix_t >
-                                                                         {
+    template<typename point_t, typename normal_t, typename matrix_t = std_diag_matrix3f<point_t, normal_t> >
+    class DirectionSolver : public PCASolver3f<point_t, normal_t, matrix_t> {
     private:
         bool _computed;
         float _pertinence;
@@ -406,76 +355,70 @@ namespace PCATools{
         normal_t _direction;
 
     public:
-        DirectionSolver()
-        {
+        DirectionSolver() {
             this->_computed = false;
             this->_order_and_normalize = false;
-            this->Origine_ = point_t(0,0,0);
+            this->Origine_ = point_t(0, 0, 0);
 
             this->cov.clear();
         }
-        DirectionSolver( bool _o_a_n )
-        {
+
+        DirectionSolver(bool _o_a_n) {
             this->_computed = false;
             this->_order_and_normalize = false;
-            this->Origine_ = point_t(0,0,0);
-
-            this->cov.clear();
-        }
-        ~DirectionSolver(){}
-
-        void clear()
-        {
-            this->_computed = false;
+            this->Origine_ = point_t(0, 0, 0);
 
             this->cov.clear();
         }
 
-        void order_and_normalize( bool _o_a_n ){  }
+        ~DirectionSolver() {}
 
-        void setOrigine( const point_t & o ){  }
-
-
-        normal_t XXYYZZ()
-        {
-            return normal_t(this->cov(0,0) , this->cov(1,1) , this->cov(2,2));
-        }
-        normal_t XYYZXZ()
-        {
-            return normal_t(this->cov(0,1) , this->cov(1,2) , this->cov(0,2));
-        }
-
-        DirectionSolver( const normal_t & xxyyzz , const normal_t & xyyzxz )
-        {
-            this->cov.set( xxyyzz[0] , xxyyzz[1] , xxyyzz[2] , xyyzxz[0] , xyyzxz[1] , xyyzxz[2] );
-        }
-
-
-        void addPoint( const point_t & pi )
-        {
-            assert( false && "Don't use POINTS with DirectionSolver !!  USE NORMALS !!" );
-        }
-        void addNormal( const normal_t & ni )
-        {
+        void clear() {
             this->_computed = false;
 
-            this->cov.addNormal( ni );
+            this->cov.clear();
         }
 
-        void removePoint( const point_t & pi )
-        {
-            assert( false && "Don't use POINTS with DirectionSolver !!  USE NORMALS !!" );
+        void order_and_normalize(bool _o_a_n) {}
+
+        void setOrigine(const point_t &o) {}
+
+
+        normal_t XXYYZZ() {
+            return normal_t(this->cov(0, 0), this->cov(1, 1), this->cov(2, 2));
         }
-        void removeNormal( const normal_t & ni )
-        {
+
+        normal_t XYYZXZ() {
+            return normal_t(this->cov(0, 1), this->cov(1, 2), this->cov(0, 2));
+        }
+
+        DirectionSolver(const normal_t &xxyyzz, const normal_t &xyyzxz) {
+            this->cov.set(xxyyzz[0], xxyyzz[1], xxyyzz[2], xyyzxz[0], xyyzxz[1], xyyzxz[2]);
+        }
+
+
+        void addPoint(const point_t &pi) {
+            assert(false && "Don't use POINTS with DirectionSolver !!  USE NORMALS !!");
+        }
+
+        void addNormal(const normal_t &ni) {
             this->_computed = false;
 
-            this->cov.removeNormal( ni );
+            this->cov.addNormal(ni);
         }
 
-        void compute()
-        {
-            if( this->_computed )
+        void removePoint(const point_t &pi) {
+            assert(false && "Don't use POINTS with DirectionSolver !!  USE NORMALS !!");
+        }
+
+        void removeNormal(const normal_t &ni) {
+            this->_computed = false;
+
+            this->cov.removeNormal(ni);
+        }
+
+        void compute() {
+            if (this->_computed)
                 return;
 
             this->diagonalize();
@@ -485,17 +428,17 @@ namespace PCATools{
             // Now we have lambdaX < lambdaY < lambdaZ :
 
 
-            this->_planar = ( this->lambdaZ_ ) / ( this->lambdaX_ + this->lambdaY_ + this->lambdaZ_ );
-            this->_planar = ( 3.f * (this->_planar) - 1.f ) / 2.f;
+            this->_planar = (this->lambdaZ_) / (this->lambdaX_ + this->lambdaY_ + this->lambdaZ_);
+            this->_planar = (3.f * (this->_planar) - 1.f) / 2.f;
 
 
             //            this->_rich = ( this->lambdaX_ + this->lambdaY_ ) / ( this->lambdaX_ + this->lambdaY_ + this->lambdaZ_ );
             //            this->_rich = 3.f * _rich / 2.f ;
-            this->_rich = 1.f  -  this->_planar;
+            this->_rich = 1.f - this->_planar;
 
 
-            this->_pertinence = this->lambdaZ_ / ( this->lambdaZ_ + this->lambdaY_ );
-            this->_pertinence = 2 * ( this->_pertinence ) - 1.f;
+            this->_pertinence = this->lambdaZ_ / (this->lambdaZ_ + this->lambdaY_);
+            this->_pertinence = 2 * (this->_pertinence) - 1.f;
 
 
             this->_direction = this->RepZ_;
@@ -505,9 +448,7 @@ namespace PCATools{
         }
 
 
-
-        float planar()
-        {
+        float planar() {
             // planar() belongs to [ 0 ; 1 ] :
             //      _planar == 0.f => not planar at all, inside the DirectionSolvver were put normals covering the unit sphere in a homogeneous way
             //      _planar == 1.f => completely planar, there is one normal inside the DirectionSolver
@@ -516,45 +457,37 @@ namespace PCATools{
         }
 
 
-
-        float pertinence()
-        {
+        float pertinence() {
             this->compute();
             return this->_pertinence;
         }
 
 
-        float rich()
-        {
+        float rich() {
             this->compute();
             return this->_rich;
         }
 
 
-        float poor()
-        {
+        float poor() {
             this->compute();
-            return 1.f  -  this->_rich;
+            return 1.f - this->_rich;
         }
 
 
-
-        normal_t direction()
-        {
+        normal_t direction() {
             // direction is the axis with the higher eigenvalue : that should be the normal that is the most colinear to every normal inside the DirectionSolver
             this->compute();
             return this->_direction;
         }
 
 
-
-        void operator << ( const normal_t & p )
-        {
-            this->addNormal( p );
+        void operator<<(const normal_t &p) {
+            this->addNormal(p);
         }
-        void operator += ( const normal_t & p )
-                         {
-            this->addNormal( p );
+
+        void operator+=(const normal_t &p) {
+            this->addNormal(p);
         }
 
 #if normal_t != point_t
@@ -569,60 +502,41 @@ namespace PCATools{
 #endif
 
 
-
-
-        void setSolver( const DirectionSolver & S )
-        {
+        void setSolver(const DirectionSolver &S) {
             this->_computed = false;
 
             this->cov = S.cov;
         }
 
-        void addSolver( const DirectionSolver & S )
-        {
+        void addSolver(const DirectionSolver &S) {
             this->_computed = false;
 
             this->cov += (S.cov);
         }
 
-        void addComponents( const normal_t & xxyyzz , const normal_t & xyyzxz )
-        {
+        void addComponents(const normal_t &xxyyzz, const normal_t &xyyzxz) {
             this->_computed = false;
 
-            this->cov.add( xxyyzz[0] , xxyyzz[1] , xxyyzz[2] , xyyzxz[0] , xyyzxz[1] , xyyzxz[2] );
+            this->cov.add(xxyyzz[0], xxyyzz[1], xxyyzz[2], xyyzxz[0], xyyzxz[1], xyyzxz[2]);
         }
 
 
-        void operator<< ( const DirectionSolver & S )
-        {
-            this->addSolver( S );
+        void operator<<(const DirectionSolver &S) {
+            this->addSolver(S);
         }
-        void operator+= ( const DirectionSolver & S )
-                        {
-            this->addSolver( S );
+
+        void operator+=(const DirectionSolver &S) {
+            this->addSolver(S);
         }
-        void operator= ( const DirectionSolver & S )
-                       {
-            this->setSolver( S );
+
+        void operator=(const DirectionSolver &S) {
+            this->setSolver(S);
         }
     };
 
 
-
-
-
-
-
-
-
-
-
-
-
-
-    template< typename point_t , typename normal_t , typename matrix_t = std_diag_matrix3f< point_t , normal_t > >
-                                                                         class AdaptivePCASolver : public PCASolver3f< point_t , normal_t , matrix_t >
-                                                                         {
+    template<typename point_t, typename normal_t, typename matrix_t = std_diag_matrix3f<point_t, normal_t> >
+    class AdaptivePCASolver : public PCASolver3f<point_t, normal_t, matrix_t> {
     private:
         bool _computed;
         float _sum_wi_pi_pi[3][3];
@@ -638,8 +552,7 @@ namespace PCATools{
         AdaptivePCASolver() :
                 _computed(false),
                 _sum_wi_pi(0.f),
-                _sum_wi(0.f)
-        {
+                _sum_wi(0.f) {
             _sum_wi_pi_pi[0][0] = 0.f;
             _sum_wi_pi_pi[0][1] = 0.f;
             _sum_wi_pi_pi[0][2] = 0.f;
@@ -652,12 +565,10 @@ namespace PCATools{
         }
 
 
-
-        void addPoint( const point_t  & _p , float _weight = 1.f )
-        {
+        void addPoint(const point_t &_p, float _weight = 1.f) {
             _computed = false;
             _sum_wi += _weight;
-            _sum_wi_pi += _weight*_p;
+            _sum_wi_pi += _weight * _p;
 
             _sum_wi_pi_pi[0][0] += _weight * _p[0] * _p[0];
             _sum_wi_pi_pi[0][1] += _weight * _p[0] * _p[1];
@@ -668,12 +579,8 @@ namespace PCATools{
         }
 
 
-
-
-
-        void compute()
-        {
-            if( this->_computed )
+        void compute() {
+            if (this->_computed)
                 return;
 
             this->_mean_point = this->_sum_wi_pi / this->_sum_wi;
@@ -686,14 +593,14 @@ namespace PCATools{
                             _sum_wi_pi_pi[0][1] - _sum_wi * _mean_point[0] * _mean_point[1],
                             _sum_wi_pi_pi[1][2] - _sum_wi * _mean_point[1] * _mean_point[2],
                             _sum_wi_pi_pi[0][2] - _sum_wi * _mean_point[0] * _mean_point[2]
-                            );
+                    );
 
             this->diagonalize();
 
             this->order_basis();
 
-            this->_planar = this->lambdaX_ / ( this->lambdaX_ + this->lambdaY_ + this->lambdaZ_ );
-            this->_planar = 1.f  -  3.f  *  (this->_planar);
+            this->_planar = this->lambdaX_ / (this->lambdaX_ + this->lambdaY_ + this->lambdaZ_);
+            this->_planar = 1.f - 3.f * (this->_planar);
 
             this->_plan_normal = this->RepX_;
 
@@ -701,26 +608,19 @@ namespace PCATools{
         }
 
 
-
-
-        point_t mean_point()
-        {
+        point_t mean_point() {
             this->compute();
             return this->_mean_point;
         }
 
 
-
-        float planar()
-        {
+        float planar() {
             this->compute();
             return this->_planar;
         }
 
 
-
-        void best_fitting_plan( float & _planar , point_t & _center , normal_t & _normal )
-        {
+        void best_fitting_plan(float &_planar, point_t &_center, normal_t &_normal) {
             this->compute();
 
             _planar = this->_planar;
@@ -729,11 +629,7 @@ namespace PCATools{
         }
 
 
-
-
-
-        void addSolver( const AdaptivePCASolver & S )
-        {
+        void addSolver(const AdaptivePCASolver &S) {
             this->_computed = false;
 
             this->_sum_wi_pi_pi[0][0] += S._sum_wi_pi_pi[0][0];
@@ -751,8 +647,7 @@ namespace PCATools{
         }
 
 
-        void setSolver( const AdaptivePCASolver & S )
-        {
+        void setSolver(const AdaptivePCASolver &S) {
             this->_computed = false;
 
             this->_sum_wi_pi_pi[0][0] = S._sum_wi_pi_pi[0][0];
@@ -770,35 +665,23 @@ namespace PCATools{
         }
 
 
-        void operator << ( const AdaptivePCASolver & S )
-        {
-            this->addSolver( S );
+        void operator<<(const AdaptivePCASolver &S) {
+            this->addSolver(S);
         }
-        void operator += ( const AdaptivePCASolver & S )
-                         {
-            this->addSolver( S );
+
+        void operator+=(const AdaptivePCASolver &S) {
+            this->addSolver(S);
         }
-        void operator = ( const AdaptivePCASolver & S )
-                        {
-            this->setSolver( S );
+
+        void operator=(const AdaptivePCASolver &S) {
+            this->setSolver(S);
         }
 
 
     };
 
 
-
 }
-
-
-
-
-
-
-
-
-
-
 
 
 #endif // PCATOOLS_H

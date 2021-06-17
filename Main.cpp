@@ -5,13 +5,12 @@
 #include "Window.h"
 #include <qapplication.h>
 
-int main(int argc, char** argv)
-{
-  QApplication application(argc,argv);
+int main(int argc, char **argv) {
+    QApplication application(argc, argv);
 
-  Window vi;
+    Window vi;
 
-  vi.show();
+    vi.show();
 
-  return application.exec();
+    return application.exec();
 }

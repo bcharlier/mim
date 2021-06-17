@@ -16,10 +16,9 @@ static unsigned int max_operation_saved = 10;
 
 Viewer::Viewer(QWidget *parent) : QGLViewer(parent) {}
 
-Viewer::~Viewer(){}
+Viewer::~Viewer() {}
 
-void Viewer::init()
-{
+void Viewer::init() {
     makeCurrent();
 
     initializeOpenGLFunctions();
@@ -27,7 +26,7 @@ void Viewer::init()
     // Absolutely needed for MouseGrabber
     setMouseTracking(true);
 
-    setBackgroundColor(QColor(255,255,255));
+    setBackgroundColor(QColor(255, 255, 255));
 
     //restoreStateFromFile();
 
@@ -35,12 +34,12 @@ void Viewer::init()
 
     manipulator = new SimpleManipulator;
     //connect(manipulator , SIGNAL(moved()) , this , SLOT(updateFromCMInterface())); //TODO if interactive motion of selected points
-    connect(manipulator , SIGNAL(mouseReleased()) , this , SLOT(manipulatorReleased()));
+    connect(manipulator, SIGNAL(mouseReleased()), this, SLOT(manipulatorReleased()));
 
     rselection = new RectangleSelection;
-    connect( rselection , SIGNAL(add(QRectF , bool )) , this , SLOT(addToSelection(QRectF , bool)) );
-    connect( rselection , SIGNAL(remove(QRectF)) , this , SLOT(removeFromSelection(QRectF)) );
-    connect( rselection , SIGNAL(apply()) , this , SLOT(computeManipulatorForDeformation()) );
+    connect(rselection, SIGNAL(add(QRectF, bool)), this, SLOT(addToSelection(QRectF, bool)));
+    connect(rselection, SIGNAL(remove(QRectF)), this, SLOT(removeFromSelection(QRectF)));
+    connect(rselection, SIGNAL(apply()), this, SLOT(computeManipulatorForDeformation()));
 
     glLightModeli(GL_LIGHT_MODEL_TWO_SIDE, GL_FALSE);
 
@@ -64,64 +63,49 @@ void Viewer::initLightsAndMaterials() {
 }
 
 
-
-void Viewer::mousePressEvent(QMouseEvent* e )
-{
+void Viewer::mousePressEvent(QMouseEvent *e) {
 
     makeCurrent();
 
-    if( ( e->modifiers() & Qt::ShiftModifier ) )
-    {
+    if ((e->modifiers() & Qt::ShiftModifier)) {
 
-        if( rselection->isInactive() )
-        {
+        if (rselection->isInactive()) {
             rselection->activate();
         }
-        rselection->mousePressEvent( e , camera() );
+        rselection->mousePressEvent(e, camera());
         update();
         return;
 
-    }
-
-    else if ((e->button() == Qt::MidButton) && (e->modifiers() & Qt::ControlModifier))
-    {
+    } else if ((e->button() == Qt::MidButton) && (e->modifiers() & Qt::ControlModifier)) {
         manipulator->clear();
-        manipulator->setDisplayScale(manipulatorScale*camera()->sceneRadius()/9.);
-    }
-
-    else if ((e->button() == Qt::LeftButton) && (e->modifiers() & Qt::ControlModifier))
-    {
+        manipulator->setDisplayScale(manipulatorScale * camera()->sceneRadius() / 9.);
+    } else if ((e->button() == Qt::LeftButton) && (e->modifiers() & Qt::ControlModifier)) {
         bool found;
         qglviewer::Vec point = camera()->pointUnderPixel(e->pos(), found);
-        if( found ){
+        if (found) {
             manipulator->clear();
-            manipulator->setDisplayScale(manipulatorScale*camera()->sceneRadius()/9.);
+            manipulator->setDisplayScale(manipulatorScale * camera()->sceneRadius() / 9.);
         }
-    }
-    else if ((e->button() == Qt::RightButton) && (e->modifiers() & Qt::ControlModifier))
-    {
+    } else if ((e->button() == Qt::RightButton) && (e->modifiers() & Qt::ControlModifier)) {
         bool found;
 
         qglviewer::Vec point = camera()->pointUnderPixel(e->pos(), found);
-        if( found ){
+        if (found) {
             manipulator->clear();
-            manipulator->setDisplayScale(manipulatorScale*camera()->sceneRadius()/9.);
+            manipulator->setDisplayScale(manipulatorScale * camera()->sceneRadius() / 9.);
         }
     }
     QGLViewer::mousePressEvent(e);
 }
 
-void Viewer::mouseMoveEvent(QMouseEvent* e  )
-{
+void Viewer::mouseMoveEvent(QMouseEvent *e) {
 
-    if( ! rselection->isInactive() )
-    {
+    if (!rselection->isInactive()) {
 
-        if( rselection->isInactive() )
-        {
+        if (rselection->isInactive()) {
             rselection->activate();
         }
-        rselection->mouseMoveEvent( e , camera() );
+        rselection->mouseMoveEvent(e, camera());
         update();
         return;
     }
@@ -130,17 +114,14 @@ void Viewer::mouseMoveEvent(QMouseEvent* e  )
     QGLViewer::mouseMoveEvent(e);
 }
 
-void Viewer::mouseReleaseEvent(QMouseEvent* e  )
-{
+void Viewer::mouseReleaseEvent(QMouseEvent *e) {
 
-    if( ! rselection->isInactive() )
-    {
+    if (!rselection->isInactive()) {
 
-        if( rselection->isInactive() )
-        {
+        if (rselection->isInactive()) {
             rselection->activate();
         }
-        rselection->mouseReleaseEvent( e , camera() );
+        rselection->mouseReleaseEvent(e, camera());
         rselection->deactivate();
         update();
         return;
@@ -150,40 +131,38 @@ void Viewer::mouseReleaseEvent(QMouseEvent* e  )
     QGLViewer::mouseReleaseEvent(e);
 }
 
-void Viewer::manipulatorReleased(){
+void Viewer::manipulatorReleased() {
     saveCurrentState();
 }
 
-void Viewer::saveCurrentState(){
+void Viewer::saveCurrentState() {
 
-    if( Q.size() == max_operation_saved )
+    if (Q.size() == max_operation_saved)
         Q.pop_front();
     //TODO define state i.e. current vertices positions?
 
 }
 
 
-void Viewer::restaureLastState(){
+void Viewer::restaureLastState() {
 
-    if( Q.size() > 0 ){
+    if (Q.size() > 0) {
 
-        if(Q.size() > 1)
+        if (Q.size() > 1)
             Q.pop_back();
 
         //TODO define state to restore
 
-        if(Q.size() > 1)
+        if (Q.size() > 1)
             Q.pop_back();
     }
 
 }
 
 
+void Viewer::addToSelection(QRectF const &zone, bool moving) {
 
-void Viewer::addToSelection( QRectF const & zone , bool moving )
-{
-
-    if(manipulator->getEtat()) manipulator->deactivate();
+    if (manipulator->getEtat()) manipulator->deactivate();
 
     float modelview[16];
     camera()->getModelViewMatrix(modelview);
@@ -193,9 +172,8 @@ void Viewer::addToSelection( QRectF const & zone , bool moving )
     //TODO
 }
 
-void Viewer::removeFromSelection( QRectF const & zone )
-{
-    if(manipulator->getEtat()) manipulator->deactivate();
+void Viewer::removeFromSelection(QRectF const &zone) {
+    if (manipulator->getEtat()) manipulator->deactivate();
 
     float modelview[16];
     camera()->getModelViewMatrix(modelview);
@@ -205,12 +183,11 @@ void Viewer::removeFromSelection( QRectF const & zone )
     //TODO remove from selection
 }
 
-void Viewer::computeManipulatorForDeformation()
-{
+void Viewer::computeManipulatorForDeformation() {
     //TODO
 }
 
-void Viewer::clear(){
+void Viewer::clear() {
 
     mesh = Mesh();
 
@@ -221,40 +198,40 @@ void Viewer::clear(){
 }
 
 
-void Viewer::open(const QString & filename){
+void Viewer::open(const QString &filename) {
 
     clear();
 
-    std::vector<Vec3Df> & vertices = mesh.getVertices();
-    std::vector<Triangle> & triangles = mesh.getTriangles();
+    std::vector <Vec3Df> &vertices = mesh.getVertices();
+    std::vector <Triangle> &triangles = mesh.getTriangles();
 
-    if( filename.endsWith(".off")) {
+    if (filename.endsWith(".off")) {
         FileIO::openOFF(filename.toStdString(), vertices, triangles);
-    } else if(filename.endsWith(".obj")) {
+    } else if (filename.endsWith(".obj")) {
         FileIO::objLoader(filename.toStdString(), vertices, triangles);
-    } else if(filename.endsWith(".cff")) {
-        FileIO::openCFF( filename.toStdString(), vertices );
+    } else if (filename.endsWith(".cff")) {
+        FileIO::openCFF(filename.toStdString(), vertices);
     } else {
-        std::cout <<"Viewer::openMesh::Unsupported mesh file format "<< std::endl;
+        std::cout << "Viewer::openMesh::Unsupported mesh file format " << std::endl;
     }
 
     updateViewer();
 
 }
 
-void Viewer::openModel (const QString & filename) {
+void Viewer::openModel(const QString &filename) {
 
     model_mesh.clear();
 
-    std::vector<Vec3Df> & vertices = model_mesh.getVertices();
-    std::vector<Triangle> & triangles = model_mesh.getTriangles();
-    if( filename.endsWith(".off")) {
+    std::vector <Vec3Df> &vertices = model_mesh.getVertices();
+    std::vector <Triangle> &triangles = model_mesh.getTriangles();
+    if (filename.endsWith(".off")) {
         FileIO::openOFF(filename.toStdString(), vertices, triangles);
-    } else if(filename.endsWith(".obj")) {
+    } else if (filename.endsWith(".obj")) {
         FileIO::objLoader(filename.toStdString(), vertices, triangles);
     } else {
-        std::cout <<"Viewer::openModel::Unsupported mesh file format "<< std::endl;
-        return ;
+        std::cout << "Viewer::openModel::Unsupported mesh file format " << std::endl;
+        return;
     }
 
     model_mesh.update();
@@ -263,29 +240,29 @@ void Viewer::openModel (const QString & filename) {
 }
 
 
-void Viewer::saveCamera(const QString &filename){
-    std::ofstream out (filename.toUtf8());
+void Viewer::saveCamera(const QString &filename) {
+    std::ofstream out(filename.toUtf8());
     if (!out)
-        exit (EXIT_FAILURE);
+        exit(EXIT_FAILURE);
 
     out << camera()->position() << " " <<
-           camera()->viewDirection() << " " <<
-           camera()->upVector() << " " <<
-           camera()->fieldOfView();
+        camera()->viewDirection() << " " <<
+        camera()->upVector() << " " <<
+        camera()->fieldOfView();
     out << std::endl;
-    out.close ();
+    out.close();
 }
 
-std::istream & operator>>(std::istream & stream, qglviewer::Vec & v)
-{
+std::istream &operator>>(std::istream &stream, qglviewer::Vec &v) {
     stream >>
-            v.x >>
-            v.y >>
-            v.z;
+           v.x >>
+           v.y >>
+           v.z;
 
     return stream;
 }
-void Viewer::openCamera(const QString &filename){
+
+void Viewer::openCamera(const QString &filename) {
 
     std::ifstream file;
     file.open(filename.toStdString());
@@ -296,9 +273,9 @@ void Viewer::openCamera(const QString &filename){
     float fov;
 
     file >> pos >>
-            view >>
-            up >>
-            fov;
+         view >>
+         up >>
+         fov;
 
     camera()->setPosition(pos);
     camera()->setViewDirection(view);
@@ -311,17 +288,17 @@ void Viewer::openCamera(const QString &filename){
     update();
 }
 
-void Viewer::saveOFF(const QString & filename) {
+void Viewer::saveOFF(const QString &filename) {
 
     FileIO::saveOFF(filename.toStdString(), mesh.getVertices(), mesh.getTriangles());
 }
 
 
-void Viewer::updateViewer(){
+void Viewer::updateViewer() {
 
     mesh.update();
 
-    std::vector<Vec3Df> & vertices = mesh.getVertices();
+    std::vector <Vec3Df> &vertices = mesh.getVertices();
     Vec3Df center;
     double radius;
     MeshTools::computeAveragePosAndRadius(vertices, center, radius);
@@ -329,76 +306,76 @@ void Viewer::updateViewer(){
     updateCamera(center, radius);
 
     manipulator->clear();
-    manipulator->setDisplayScale(manipulatorScale*camera()->sceneRadius()/9.);
+    manipulator->setDisplayScale(manipulatorScale * camera()->sceneRadius() / 9.);
 
     saveCurrentState();
 
-    double average = radius/10.;
-    sphereScale = camera()->sceneRadius()*0.01 /average;
-    if(sphereScale > 1.) sphereScale = 1.;
+    double average = radius / 10.;
+    sphereScale = camera()->sceneRadius() * 0.01 / average;
+    if (sphereScale > 1.) sphereScale = 1.;
 
 }
 
-void Viewer::updateCamera(const Vec3Df & center, float radius){
+void Viewer::updateCamera(const Vec3Df &center, float radius) {
     camera()->setSceneCenter(Vec(center[0], center[1], center[2]));
-    camera()->setSceneRadius(radius*2.);
-    manipulator->setDisplayScale(manipulatorScale*radius/3.);
+    camera()->setSceneRadius(radius * 2.);
+    manipulator->setDisplayScale(manipulatorScale * radius / 3.);
 
     camera()->showEntireScene();
 }
 
-void Viewer::reset(){
+void Viewer::reset() {
 
     //TODO
 
 }
 
 
-void Viewer::draw(){
+void Viewer::draw() {
 
-    if(displayMode == LIGHTED || displayMode == LIGHTED_WIRE){
+    if (displayMode == LIGHTED || displayMode == LIGHTED_WIRE) {
 
-        glPolygonMode (GL_FRONT_AND_BACK, GL_FILL);
+        glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
         glEnable(GL_LIGHTING);
 
-    }  else if(displayMode == WIRE){
+    } else if (displayMode == WIRE) {
 
-        glPolygonMode (GL_FRONT_AND_BACK, GL_LINE);
-        glDisable (GL_LIGHTING);
+        glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
+        glDisable(GL_LIGHTING);
 
-    }  else if(displayMode == SOLID ){
-        glDisable (GL_LIGHTING);
-        glPolygonMode (GL_FRONT_AND_BACK, GL_FILL);
+    } else if (displayMode == SOLID) {
+        glDisable(GL_LIGHTING);
+        glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
 
     }
 
-    glColor3f(1.,1.,1.);
+    glColor3f(1., 1., 1.);
     mesh.draw();
-    glColor3f(0.37,0.82,0.55);
+    glColor3f(0.37, 0.82, 0.55);
     model_mesh.draw();
 
-    if(displayMode == SOLID || displayMode == LIGHTED_WIRE){
-        glEnable (GL_POLYGON_OFFSET_LINE);
-        glPolygonMode (GL_FRONT_AND_BACK, GL_LINE);
-        glLineWidth (1.0f);
-        glPolygonOffset (-1.0, 1.0);
+    if (displayMode == SOLID || displayMode == LIGHTED_WIRE) {
+        glEnable(GL_POLYGON_OFFSET_LINE);
+        glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
+        glLineWidth(1.0f);
+        glPolygonOffset(-1.0, 1.0);
 
-        glColor3f(0.,0.,0.);
+        glColor3f(0., 0., 0.);
         mesh.draw();
         model_mesh.draw();
 
-        glDisable (GL_POLYGON_OFFSET_LINE);
-        glEnable (GL_LIGHTING);
+        glDisable(GL_POLYGON_OFFSET_LINE);
+        glEnable(GL_LIGHTING);
     }
 
-    glPolygonMode (GL_FRONT_AND_BACK, GL_FILL);
-    glEnable( GL_DEPTH);
-    glEnable( GL_DEPTH_TEST );
+    glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
+    glEnable(GL_DEPTH);
+    glEnable(GL_DEPTH_TEST);
     glDisable(GL_BLEND);
     glDisable(GL_LIGHTING);
-    glDisable( GL_DEPTH_TEST );
+    glDisable(GL_DEPTH_TEST);
     manipulator->draw();
-    glEnable( GL_DEPTH_TEST );
+    glEnable(GL_DEPTH_TEST);
 
     glEnable(GL_BLEND);
     rselection->draw();
@@ -407,31 +384,33 @@ void Viewer::draw(){
 
 }
 
-void Viewer::changeDisplayMode(){
-    if(displayMode == LIGHTED)
+void Viewer::changeDisplayMode() {
+    if (displayMode == LIGHTED)
         displayMode = LIGHTED_WIRE;
-    else if(displayMode == LIGHTED_WIRE)
+    else if (displayMode == LIGHTED_WIRE)
         displayMode = SOLID;
-    else if(displayMode == SOLID)
+    else if (displayMode == SOLID)
         displayMode = WIRE;
     else
         displayMode = LIGHTED;
     update();
 }
 
-void Viewer::keyPressEvent(QKeyEvent *e)
-{
-    switch (e->key())
-    {
-    case Qt::Key_D : changeDisplayMode(); break;
-    case Qt::Key_Z :
-        if(e->modifiers() & Qt::ControlModifier) restaureLastState(); update(); break;
-    default : QGLViewer::keyPressEvent(e);
+void Viewer::keyPressEvent(QKeyEvent *e) {
+    switch (e->key()) {
+        case Qt::Key_D :
+            changeDisplayMode();
+            break;
+        case Qt::Key_Z :
+            if (e->modifiers() & Qt::ControlModifier) restaureLastState();
+            update();
+            break;
+        default :
+            QGLViewer::keyPressEvent(e);
     }
 }
 
-QString Viewer::helpString() const
-{
+QString Viewer::helpString() const {
     QString text("<h2>KidPocket Framework</h2>");
 
     text += "This application allows to deform a mesh using </br> <b>ARAP*</b>.";

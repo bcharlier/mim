@@ -19,6 +19,7 @@ CONFIG += release \
 
 INCLUDEPATH = ./Manipulator
 HEADERS += Window.h \
+    DeformableObject.h \
     Viewer.h \
     Manipulator/PCATools.h \
     Manipulator/Manipulator.h \

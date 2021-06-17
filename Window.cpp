@@ -2,25 +2,24 @@
 
 #include <QtGui>
 
-Window::Window()
-{
+Window::Window() {
     if (this->objectName().isEmpty())
         this->setObjectName("window");
     this->resize(929, 891);
 
     viewer = new Viewer(this);
 
-    QWidget * mesherWidget = new QWidget(this);
+    QWidget *mesherWidget = new QWidget(this);
 
-    QGridLayout * mesherLayout = new QGridLayout();
+    QGridLayout *mesherLayout = new QGridLayout();
 
     mesherLayout->addWidget(viewer, 0, 1, 1, 1);
 
     mesherWidget->setLayout(mesherLayout);
 
-    QGroupBox * viewerGroupBox = new QGroupBox("IM Viewer");
+    QGroupBox *viewerGroupBox = new QGroupBox("IM Viewer");
 
-    QGridLayout * gridLayout = new QGridLayout(viewerGroupBox);
+    QGridLayout *gridLayout = new QGridLayout(viewerGroupBox);
     gridLayout->setObjectName("gridLayout");
 
     gridLayout->addWidget(mesherWidget, 0, 1, 1, 1);
@@ -30,60 +29,60 @@ Window::Window()
     this->setCentralWidget(viewerGroupBox);
 
     initDisplayDockWidgets();
-    initActions ();
-    initMenus ();
-    initToolBars ();
+    initActions();
+    initMenus();
+    initToolBars();
 
     this->setWindowTitle("IM");
 
 }
 
-void Window::initDisplayDockWidgets(){
-    QDockWidget * displayDockWidget = new QDockWidget("Options");
+void Window::initDisplayDockWidgets() {
+    QDockWidget *displayDockWidget = new QDockWidget("Options");
 
-    QWidget * contents = new QWidget();
+    QWidget *contents = new QWidget();
 
-    QVBoxLayout * contentLayout = new QVBoxLayout();
+    QVBoxLayout *contentLayout = new QVBoxLayout();
 
-    QPushButton * saveCameraPushButton = new QPushButton("Save camera");
+    QPushButton *saveCameraPushButton = new QPushButton("Save camera");
     contentLayout->addWidget(saveCameraPushButton);
     connect(saveCameraPushButton, SIGNAL(clicked()), this, SLOT(saveCamera()));
 
-    QPushButton * loadCameraPushButton = new QPushButton("Load camera");
+    QPushButton *loadCameraPushButton = new QPushButton("Load camera");
     contentLayout->addWidget(loadCameraPushButton);
     connect(loadCameraPushButton, SIGNAL(clicked()), this, SLOT(openCamera()));
 
-    QPushButton * invertNormalsPushButton = new QPushButton("Invert Normals");
+    QPushButton *invertNormalsPushButton = new QPushButton("Invert Normals");
     contentLayout->addWidget(invertNormalsPushButton);
     connect(invertNormalsPushButton, SIGNAL(clicked()), viewer, SLOT(invertNormals()));
 
     contents->setLayout(contentLayout);
     displayDockWidget->setWidget(contents);
 
-    QGroupBox * deformationGroupBox = new QGroupBox("Deformation");
-    QVBoxLayout * deformationGroupBoxLayout = new QVBoxLayout(deformationGroupBox);
+    QGroupBox *deformationGroupBox = new QGroupBox("Deformation");
+    QVBoxLayout *deformationGroupBoxLayout = new QVBoxLayout(deformationGroupBox);
 
-    QPushButton * resetPushButton = new QPushButton("Reset");
+    QPushButton *resetPushButton = new QPushButton("Reset");
     deformationGroupBoxLayout->addWidget(resetPushButton);
     connect(resetPushButton, SIGNAL(clicked()), viewer, SLOT(reset()));
 
-    QLabel * sphereRadiusLabel = new QLabel("Sphere scale");
+    QLabel *sphereRadiusLabel = new QLabel("Sphere scale");
     deformationGroupBoxLayout->addWidget(sphereRadiusLabel);
-    QDoubleSpinBox * sphereRadiusSpinBox = new QDoubleSpinBox();
+    QDoubleSpinBox *sphereRadiusSpinBox = new QDoubleSpinBox();
     sphereRadiusSpinBox->setSingleStep(0.01);
     sphereRadiusSpinBox->setValue(1.);
-    sphereRadiusSpinBox->setDecimals( 2 );
-    connect (sphereRadiusSpinBox, SIGNAL(valueChanged(double)), viewer, SLOT(setSphereScale(double)));
+    sphereRadiusSpinBox->setDecimals(2);
+    connect(sphereRadiusSpinBox, SIGNAL(valueChanged(double)), viewer, SLOT(setSphereScale(double)));
 
     deformationGroupBoxLayout->addWidget(sphereRadiusSpinBox);
 
-    QLabel * manipulatorScaleLabel = new QLabel("Manipulator scale");
+    QLabel *manipulatorScaleLabel = new QLabel("Manipulator scale");
     deformationGroupBoxLayout->addWidget(manipulatorScaleLabel);
-    QDoubleSpinBox * manipulatorScaleSpinBox = new QDoubleSpinBox();
+    QDoubleSpinBox *manipulatorScaleSpinBox = new QDoubleSpinBox();
     manipulatorScaleSpinBox->setSingleStep(0.01);
     manipulatorScaleSpinBox->setValue(1.);
-    manipulatorScaleSpinBox->setDecimals( 2 );
-    connect (manipulatorScaleSpinBox, SIGNAL(valueChanged(double)), viewer, SLOT(setManipulatorScale(double)));
+    manipulatorScaleSpinBox->setDecimals(2);
+    connect(manipulatorScaleSpinBox, SIGNAL(valueChanged(double)), viewer, SLOT(setManipulatorScale(double)));
 
     deformationGroupBoxLayout->addWidget(manipulatorScaleSpinBox);
 
@@ -95,22 +94,22 @@ void Window::initDisplayDockWidgets(){
 }
 
 
-void Window::saveMesh(){
+void Window::saveMesh() {
 
     QString fileName = QFileDialog::getSaveFileName(this, "Save mesh file as ", "./data/", "Data (*.off)");
 
     // In case of Cancel
-    if ( fileName.isEmpty() ) {
+    if (fileName.isEmpty()) {
         return;
     }
 
-    if(!fileName.endsWith(".off")) fileName.append(".off");
+    if (!fileName.endsWith(".off")) fileName.append(".off");
 
     viewer->saveOFF(fileName);
 
 }
 
-void Window::open(){
+void Window::open() {
 
     QString selectedFilter, openFileNameLabel;
 
@@ -124,14 +123,14 @@ void Window::open(){
                                                     &selectedFilter);
 
     // In case of Cancel
-    if ( fileName.isEmpty() ) {
+    if (fileName.isEmpty()) {
         return;
     }
 
     viewer->open(fileName);
 }
 
-void Window::openMeshModel(){
+void Window::openMeshModel() {
 
     QString selectedFilter, openFileNameLabel;
 
@@ -145,77 +144,77 @@ void Window::openMeshModel(){
                                                     &selectedFilter);
 
     // In case of Cancel
-    if ( fileName.isEmpty() ) {
+    if (fileName.isEmpty()) {
         return;
     }
 
     viewer->openModel(fileName);
 }
 
-void Window::initActions () {
-    initFileActions ();
+void Window::initActions() {
+    initFileActions();
 }
 
-void Window::initFileActions () {
+void Window::initFileActions() {
 
-    QAction * fileOpenMeshAction = new QAction (QPixmap ("../Icons/fileopen.png"), "Open Mesh", this);
-    fileOpenMeshAction->setShortcut (tr ("Ctrl+O"));
-    connect (fileOpenMeshAction, SIGNAL (triggered ()) , this, SLOT (open ()));
+    QAction *fileOpenMeshAction = new QAction(QPixmap("../Icons/fileopen.png"), "Open Mesh", this);
+    fileOpenMeshAction->setShortcut(tr("Ctrl+O"));
+    connect(fileOpenMeshAction, SIGNAL(triggered()), this, SLOT(open()));
 
-    QAction * fileOpenMeshModelAction = new QAction (QPixmap ("../Icons/fileopen.png"), "Open Model", this);
-    fileOpenMeshModelAction->setShortcut (tr ("Ctrl+O"));
-    connect (fileOpenMeshModelAction, SIGNAL (triggered ()) , this, SLOT (openMeshModel ()));
+    QAction *fileOpenMeshModelAction = new QAction(QPixmap("../Icons/fileopen.png"), "Open Model", this);
+    fileOpenMeshModelAction->setShortcut(tr("Ctrl+O"));
+    connect(fileOpenMeshModelAction, SIGNAL(triggered()), this, SLOT(openMeshModel()));
 
-    QAction * fileSaveMeshAction = new QAction (QPixmap ("../Icons/filesave.png"), "Save Mesh", this);
-    fileSaveMeshAction->setShortcut (tr ("Ctrl+S"));
-    connect (fileSaveMeshAction, SIGNAL (triggered ()) , this, SLOT (saveMesh ()));
+    QAction *fileSaveMeshAction = new QAction(QPixmap("../Icons/filesave.png"), "Save Mesh", this);
+    fileSaveMeshAction->setShortcut(tr("Ctrl+S"));
+    connect(fileSaveMeshAction, SIGNAL(triggered()), this, SLOT(saveMesh()));
 
-    QAction * fileQuitAction = new QAction (QPixmap("../Icons/exit.png"), "Quit", this);
-    fileQuitAction->setShortcut (tr ("Ctrl+Q"));
-    connect (fileQuitAction, SIGNAL (triggered()) , qApp, SLOT (closeAllWindows()));
+    QAction *fileQuitAction = new QAction(QPixmap("../Icons/exit.png"), "Quit", this);
+    fileQuitAction->setShortcut(tr("Ctrl+Q"));
+    connect(fileQuitAction, SIGNAL(triggered()), qApp, SLOT(closeAllWindows()));
 
-    fileActionGroup = new QActionGroup (this);
+    fileActionGroup = new QActionGroup(this);
 
-    fileActionGroup->addAction (fileOpenMeshAction);
-    fileActionGroup->addAction (fileOpenMeshModelAction);
-    fileActionGroup->addAction (fileSaveMeshAction);
+    fileActionGroup->addAction(fileOpenMeshAction);
+    fileActionGroup->addAction(fileOpenMeshModelAction);
+    fileActionGroup->addAction(fileSaveMeshAction);
 
-    fileActionGroup->addAction (fileQuitAction);
+    fileActionGroup->addAction(fileQuitAction);
 }
 
 
-void Window::initMenus () {
-    QMenu * fileMenu = menuBar ()->addMenu (tr ("File"));;
-    fileMenu->addActions (fileActionGroup->actions ());
+void Window::initMenus() {
+    QMenu *fileMenu = menuBar()->addMenu(tr("File"));;
+    fileMenu->addActions(fileActionGroup->actions());
 
-    QMenu * helpMenu = menuBar ()->addMenu (tr ("Help"));
-    QAction *  helpAction = new QAction ("Control", this);
-    helpAction->setShortcut (tr ("Ctrl+H"));
-    connect (helpAction, SIGNAL (triggered ()), viewer, SLOT (help ()));
-    helpMenu->addAction (helpAction);
+    QMenu *helpMenu = menuBar()->addMenu(tr("Help"));
+    QAction *helpAction = new QAction("Control", this);
+    helpAction->setShortcut(tr("Ctrl+H"));
+    connect(helpAction, SIGNAL(triggered()), viewer, SLOT(help()));
+    helpMenu->addAction(helpAction);
 }
 
-void Window::initToolBars () {
-    fileToolBar = new QToolBar (this);
-    fileToolBar->addActions (fileActionGroup->actions ());
-    addToolBar (fileToolBar);
+void Window::initToolBars() {
+    fileToolBar = new QToolBar(this);
+    fileToolBar->addActions(fileActionGroup->actions());
+    addToolBar(fileToolBar);
 }
 
-void Window::saveCamera(){
+void Window::saveCamera() {
     QString fileName = QFileDialog::getSaveFileName(this, "Save camera file as ", "./data/", "Data (*.txt)");
 
     // In case of Cancel
-    if ( fileName.isEmpty() ) {
+    if (fileName.isEmpty()) {
         return;
     }
 
-    if(!fileName.endsWith(".txt"))
+    if (!fileName.endsWith(".txt"))
         fileName.append(".txt");
 
     viewer->saveCamera(fileName);
 }
 
-void Window::openCamera(){
+void Window::openCamera() {
 
     QString selectedFilter, openFileNameLabel;
 
@@ -228,7 +227,7 @@ void Window::openCamera(){
                                                     &selectedFilter);
 
     // In case of Cancel
-    if ( fileName.isEmpty() ) {
+    if (fileName.isEmpty()) {
         return;
     }
 
