@@ -407,8 +407,9 @@ namespace FileIO {
     }
 
 
-    template<typename Point>
-    void openCFF(std::string const &filename, std::vector <Point> &vertices) {
+    template<typename Point, typename Face>
+    void openCFF(std::string const &filename, std::vector <Point> &vertices, std::vector <Face> &edges) {
+
         std::ifstream myfile;
         myfile.open(filename.c_str());
         if (!myfile.is_open()) {
@@ -416,17 +417,42 @@ namespace FileIO {
             return;
         }
 
-        int n_vertices, dimension;
-        myfile >> n_vertices >> dimension;
+        std::string magic_s;
 
+        myfile >> magic_s;
+
+        if (magic_s != "CFF") {
+            std::cout << magic_s << " != CFF :   We handle ONLY *.cff files." << std::endl;
+            myfile.close();
+            exit(1);
+        }
+
+        int n_vertices, n_faces;
+        myfile >> n_vertices >> n_faces;
+
+        std::cout << "nb ver and faces: " << n_vertices  << " " << n_faces << std::endl;
 
         vertices.clear();
-
         for (int v = 0; v < n_vertices; ++v) {
             float x, y, z = 0;
-            myfile >> x >> y;
-            if (dimension == 3) myfile >> z;
+            myfile >> x >> y >> z;
             vertices.push_back(Point(x, y, z));
+            // std::cout << v << " : " << x << " "  << y << " " << z << std::endl;
+        }
+
+        edges.clear();
+        for (int f = 0; f < n_faces; ++f) {
+            int n_vertices_on_face;
+            myfile >> n_vertices_on_face;
+            if (n_vertices_on_face == 2) {
+                int _v0, _v1;
+                myfile >> _v0 >> _v1;
+                edges.push_back(Face(_v0, _v1));
+            } else {
+                std::cout << "We handle ONLY *.cff files with 0 or 2 vertices per edges" << std::endl;
+                myfile.close();
+                exit(1);
+            }
         }
 
         myfile.close();
@@ -436,6 +462,7 @@ namespace FileIO {
 
     template<typename Point, typename Face>
     void openOFF(std::string const &filename, std::vector <Point> &vertices, std::vector <Face> &triangles) {
+
         std::ifstream myfile;
         myfile.open(filename.c_str());
         if (!myfile.is_open()) {
@@ -508,12 +535,15 @@ namespace FileIO {
         }
 
         for (unsigned int t = 0; t < triangles.size(); ++t) {
-            myfile << "3 " << (triangles[t][0]) << " " << (triangles[t][1]) << " " << (triangles[t][2]) << std::endl;
+            myfile << triangles[t].dimension ;
+            for (auto i = 0; i < triangles[t].dimension; ++i)
+                myfile << " " << (triangles[t][i]);
+            myfile << std::endl;
         }
-
 
         myfile.close();
         return true;
+
     }
 
 }

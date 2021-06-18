@@ -189,6 +189,7 @@ void Viewer::computeManipulatorForDeformation() {
 
 void Viewer::clear() {
 
+    curve = Curve();
     mesh = Mesh();
 
     manipulator->deactivate();
@@ -200,17 +201,32 @@ void Viewer::clear() {
 
 void Viewer::open(const QString &filename) {
 
-    clear();
+    //clear();
 
-    std::vector <Vec3Df> &vertices = mesh.getVertices();
-    std::vector <Triangle> &triangles = mesh.getTriangles();
 
     if (filename.endsWith(".off")) {
+        mesh.clear();
+        std::vector <Vec3Df> &vertices = mesh.getVertices();
+        std::vector < Triangle > &triangles = mesh.getTriangles();
+
         FileIO::openOFF(filename.toStdString(), vertices, triangles);
+        mesh.update();
+
     } else if (filename.endsWith(".obj")) {
+        mesh.clear();
+        std::vector <Vec3Df> &vertices = mesh.getVertices();
+        std::vector < Triangle > &triangles = mesh.getTriangles();
+
         FileIO::objLoader(filename.toStdString(), vertices, triangles);
+        mesh.update();
+
     } else if (filename.endsWith(".cff")) {
-        FileIO::openCFF(filename.toStdString(), vertices);
+        curve.clear();
+        std::vector <Vec3Df> &vertices = curve.getVertices();
+        std::vector < Edge > &edges = curve.getTriangles();
+
+        FileIO::openCFF(filename.toStdString(), vertices, edges);
+        curve.update();
     } else {
         std::cout << "Viewer::openMesh::Unsupported mesh file format " << std::endl;
     }
@@ -221,20 +237,34 @@ void Viewer::open(const QString &filename) {
 
 void Viewer::openModel(const QString &filename) {
 
-    model_mesh.clear();
 
-    std::vector <Vec3Df> &vertices = model_mesh.getVertices();
-    std::vector <Triangle> &triangles = model_mesh.getTriangles();
     if (filename.endsWith(".off")) {
+        model_mesh.clear();
+        std::vector <Vec3Df> &vertices = model_mesh.getVertices();
+        std::vector < Triangle > &triangles = model_mesh.getTriangles();
+
         FileIO::openOFF(filename.toStdString(), vertices, triangles);
+        model_mesh.update();
+
     } else if (filename.endsWith(".obj")) {
+        model_mesh.clear();
+        std::vector <Vec3Df> &vertices = model_mesh.getVertices();
+        std::vector < Triangle > &triangles = model_mesh.getTriangles();
+
         FileIO::objLoader(filename.toStdString(), vertices, triangles);
+        model_mesh.update();
+
+    } else if (filename.endsWith(".cff")) {
+        model_curve.clear();
+        std::vector <Vec3Df> &vertices = model_curve.getVertices();
+        std::vector < Edge > &edges = model_curve.getTriangles();
+
+        FileIO::openCFF(filename.toStdString(), vertices, edges);
+        model_curve.update();
     } else {
-        std::cout << "Viewer::openModel::Unsupported mesh file format " << std::endl;
-        return;
+       std::cout << "Viewer::openModel::Unsupported mesh file format " << std::endl;
     }
 
-    model_mesh.update();
 
     update();
 }
@@ -289,19 +319,47 @@ void Viewer::openCamera(const QString &filename) {
 }
 
 void Viewer::saveOFF(const QString &filename) {
-
     FileIO::saveOFF(filename.toStdString(), mesh.getVertices(), mesh.getTriangles());
 }
 
 
 void Viewer::updateViewer() {
-
+std::cout <<  " radius0 " << std::endl;
+    curve.update();
+std::cout <<  " radius0 " << std::endl;
     mesh.update();
 
+    std::vector <Vec3Df> &vertices_curve = curve.getVertices();
+    //std::vector <Vec3Df> vertices_curve;
     std::vector <Vec3Df> &vertices = mesh.getVertices();
+
+std::cout <<  " radius " << std::endl;
+std::cout <<  " nb_vet_curve " << vertices_curve.size() <<  std::endl;
+std::cout <<  " nb_vert " << vertices.size() <<  std::endl;
+    std::vector <Vec3Df> tmp = vertices_curve;
+    tmp.insert(
+          tmp.end(),
+          std::make_move_iterator(vertices.begin()),
+          std::make_move_iterator(vertices.end())
+        );
+/*
+    Vec3Df err; err[0] = 0.; err[1] = 0.; err[2] = 0.;
+    for(auto i=0; i<  vertices_curve.size() + vertices.size(); ++i) {
+        std::cout << (tmp[i] - tmp2[i]) *(tmp[i] - tmp2[i]) << std::endl;
+        err += (tmp[i] - tmp2[i]) *(tmp[i] - tmp2[i])  ;
+    }
+    std:cout << err << " err " << std::endl;
+*/
     Vec3Df center;
     double radius;
-    MeshTools::computeAveragePosAndRadius(vertices, center, radius);
+    MeshTools::computeAveragePosAndRadius(tmp, center, radius);
+
+
+    //std::vector <Edge> &edges = curve.getTriangles();
+    //std::vector <Triangle> &triangle = mesh.getTriangles();
+    //std::cout << center << " radius " << radius << std::endl;
+    //for( unsigned int i = 0 ; i < edges.size() ; i++ )
+    //    std::cout << edges[i][0] << " ; " <<edges[i][1]<< std::endl;
 
     updateCamera(center, radius);
 
@@ -350,8 +408,11 @@ void Viewer::draw() {
     }
 
     glColor3f(1., 1., 1.);
+    curve.draw();
     mesh.draw();
+
     glColor3f(0.37, 0.82, 0.55);
+    model_curve.draw();
     model_mesh.draw();
 
     if (displayMode == SOLID || displayMode == LIGHTED_WIRE) {
@@ -361,7 +422,9 @@ void Viewer::draw() {
         glPolygonOffset(-1.0, 1.0);
 
         glColor3f(0., 0., 0.);
+        curve.draw();
         mesh.draw();
+        model_curve.draw();
         model_mesh.draw();
 
         glDisable(GL_POLYGON_OFFSET_LINE);

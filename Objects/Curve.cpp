@@ -1,8 +1,8 @@
-#include "Mesh.h"
+#include "Curve.h"
 #include <algorithm>
 #include <float.h>
 
-void Mesh::computeBB() {
+void Curve::computeBB() {
 
     BBMin = Vec3Df(FLT_MAX, FLT_MAX, FLT_MAX);
     BBMax = Vec3Df(-FLT_MAX, -FLT_MAX, -FLT_MAX);
@@ -19,13 +19,23 @@ void Mesh::computeBB() {
     radius = (BBMax - BBMin).norm();
 }
 
-void Mesh::update() {
+void Curve::update() {
+
+    if ((vertices.size() >0) && ( triangles.size() == 0)) {
+        triangles.clear();
+        triangles.resize(vertices.size() - 1);
+
+        for (unsigned int i = 0; i < vertices.size() - 1; i++) {
+            triangles[i].setVertices(i, i+1);
+        }
+    }
+
     computeBB();
     recomputeNormals();
-    std::cout << "Mesh : " << vertices.size() << " vertices, " << triangles.size() << " triangles " << std::endl;
+    std::cout << "Curve : " << vertices.size() << " vertices, " << triangles.size() << " edges " << std::endl;
 }
 
-void Mesh::clear() {
+void Curve::clear() {
     vertices.clear();
 
     triangles.clear();
@@ -36,14 +46,14 @@ void Mesh::clear() {
 }
 
 
-void Mesh::recomputeNormals() {
+void Curve::recomputeNormals() {
 
     computeTriangleNormals();
     computeVerticesNormals();
 
 }
 
-void Mesh::computeTriangleNormals() {
+void Curve::computeTriangleNormals() {
 
     normals.clear();
 
@@ -53,18 +63,17 @@ void Mesh::computeTriangleNormals() {
 
 }
 
-Vec3Df Mesh::computeTriangleNormal(int id) {
+Vec3Df Curve::computeTriangleNormal(int id) {
 
-    const Triangle &t = triangles[id];
-    Vec3Df normal = Vec3Df::crossProduct(vertices[t.getVertex(1)] - vertices[t.getVertex(0)],
-                                         vertices[t.getVertex(2)] - vertices[t.getVertex(0)]);
-    normal.normalize();
-    return normal;
+    const Edge &t = triangles[id];
+    Vec3Df tangent = (vertices[t.getVertex(1)] - vertices[t.getVertex(0)]);
+    tangent.normalize();
+    return tangent;
 
 }
 
 
-void Mesh::computeVerticesNormals() {
+void Curve::computeVerticesNormals() {
 
     verticesNormals.clear();
     verticesNormals.resize(vertices.size(), Vec3Df(0., 0., 0.));
@@ -74,7 +83,6 @@ void Mesh::computeVerticesNormals() {
 
         verticesNormals[triangles[t].getVertex(0)] += tri_normal;
         verticesNormals[triangles[t].getVertex(1)] += tri_normal;
-        verticesNormals[triangles[t].getVertex(2)] += tri_normal;
     }
 
     for (unsigned int v = 0; v < verticesNormals.size(); ++v) {
@@ -82,14 +90,14 @@ void Mesh::computeVerticesNormals() {
     }
 }
 
-void Mesh::collectOneRing(std::vector <std::vector<unsigned int>> &oneRing) const {
+void Curve::collectOneRing(std::vector <std::vector<unsigned int>> &oneRing) const {
     oneRing.resize(vertices.size());
     for (unsigned int i = 0; i < triangles.size(); i++) {
-        const Triangle &ti = triangles[i];
-        for (unsigned int j = 0; j < 3; j++) {
+        const Edge &ti = triangles[i];
+        for (unsigned int j = 0; j < 2; j++) {
             unsigned int vj = ti.getVertex(j);
-            for (unsigned int k = 1; k < 3; k++) {
-                unsigned int vk = ti.getVertex((j + k) % 3);
+            for (unsigned int k = 1; k < 2; k++) {
+                unsigned int vk = ti.getVertex((j + k) % 2);
                 if (std::find(oneRing[vj].begin(), oneRing[vj].end(), vk) == oneRing[vj].end())
                     oneRing[vj].push_back(vk);
             }
@@ -97,10 +105,10 @@ void Mesh::collectOneRing(std::vector <std::vector<unsigned int>> &oneRing) cons
     }
 }
 
-void Mesh::glTriangle(unsigned int i) {
+void Curve::glTriangle(unsigned int i) {
 
-    const Triangle &t = triangles[i];
-    for (int j = 0; j < 3; j++) {
+    const Edge &t = triangles[i];
+    for (int j = 0; j < 2; j++) {
         glNormal(verticesNormals[t.getVertex(j)] * normalDirection);
         glVertex(vertices[t.getVertex(j)]);
     }
@@ -108,35 +116,19 @@ void Mesh::glTriangle(unsigned int i) {
 }
 
 
-void Mesh::sortFaces(FacesQueue &facesQueue) {
-    float modelview[16];
-    glGetFloatv(GL_MODELVIEW_MATRIX, modelview);
-
-
-    for (unsigned int t = 0; t < triangles.size(); ++t) {
-        Vec3Df _center = (
-                                 vertices[triangles[t].getVertex(0)] +
-                                 vertices[triangles[t].getVertex(1)] +
-                                 vertices[triangles[t].getVertex(2)]) / 3.f;
-        facesQueue.push(std::make_pair(
-                modelview[2] * _center[0] + modelview[6] * _center[1] + modelview[10] * _center[2] + modelview[14], t));
-    }
-
-}
-
-void Mesh::draw(std::vector<bool> &selected, std::vector<bool> &fixed) {
+void Curve::draw(std::vector<bool> &selected, std::vector<bool> &fixed) {
 
     glEnable(GL_DEPTH_TEST);
     glEnable(GL_DEPTH);
 
-    glBegin(GL_TRIANGLES);
+    glBegin(GL_LINES);
 
     for (unsigned int i = 0; i < triangles.size(); i++) {
 
-        int vi[3] = {triangles[i].getVertex(0), triangles[i].getVertex(1), triangles[i].getVertex(2)};
-        if (selected[vi[0]] && selected[vi[1]] && selected[vi[2]])
+        int vi[2] = {static_cast<int>(triangles[i].getVertex(0)), static_cast<int>(triangles[i].getVertex(1))};
+        if (selected[vi[0]] && selected[vi[1]])
             glColor3f(0.8, 0., 0.);
-        if (fixed[vi[0]] && fixed[vi[1]] && fixed[vi[2]])
+        if (fixed[vi[0]] && fixed[vi[1]])
             glColor3f(0., 0.8, 0.);
         else
             glColor3f(0.37, 0.55, 0.82);
@@ -152,12 +144,12 @@ void Mesh::draw(std::vector<bool> &selected, std::vector<bool> &fixed) {
 }
 
 
-void Mesh::draw() {
+void Curve::draw() {
 
     glEnable(GL_DEPTH_TEST);
     glEnable(GL_DEPTH);
 
-    glBegin(GL_TRIANGLES);
+    glBegin(GL_LINES);
 
     for (unsigned int i = 0; i < triangles.size(); i++) {
 

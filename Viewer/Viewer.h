@@ -8,8 +8,8 @@
 
 #include "OpenGLIncludeQtComp.h"
 
-#include "Mesh.h"
-
+#include "Objects/Mesh.h"
+#include "Objects/Curve.h"
 
 enum Mode {
     DIM2D, DIM3D
@@ -28,7 +28,7 @@ enum DisplayMode {
 #include "PCATools.h"
 #include "Manipulator.h"
 #include "RectangleSelection.h"
-#include "Vec3D.h"
+#include "Utils/Vec3D.h"
 
 #include "GLUtilityMethods.h"
 
@@ -90,8 +90,11 @@ protected :
     std::deque <std::vector<Vec3Df>> Q;
 
     Mesh mesh;
+    Curve curve;
 
     Mesh model_mesh;
+    Curve model_curve;
+
     double sphereScale;
     double manipulatorScale;
 

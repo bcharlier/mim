@@ -17,24 +17,29 @@ CONFIG += release \
     console \
     embed_manifest_exe
 
-INCLUDEPATH = ./Manipulator
-HEADERS += Window.h \
-    DeformableObject.h \
-    Viewer.h \
+INCLUDEPATH = ./Manipulator \
+    Objects/ \
+    Viewer/ \
+    Utils/
+HEADERS += Viewer/Window.h \
+    Objects/Curve.h \
+    Objects/DeformableObject.h \
+    Viewer/Viewer.h \
     Manipulator/PCATools.h \
     Manipulator/Manipulator.h \
-    Vec3D.h \
-    GLUtilityMethods.h \
+    Utils/Vec3D.h \
+    Viewer/GLUtilityMethods.h \
     Manipulator/RectangleSelection.h \
-    Triangle.h \
-    Edge.h \
-    Mesh.h \
-    OpenGLIncludeQtComp.h
-SOURCES += Window.cpp \
-    Viewer.cpp \
+    Objects/Triangle.h \
+    Objects/Edge.h \
+    Objects/Mesh.h \
+    Viewer/OpenGLIncludeQtComp.h
+SOURCES += Viewer/Window.cpp \
+    Objects/Curve.cpp \
+    Viewer/Viewer.cpp \
     Main.cpp \
-    GLUtilityMethods.cpp \
-    Mesh.cpp
+    Viewer/GLUtilityMethods.cpp \
+    Objects/Mesh.cpp
 LIBS += -L/usr/lib/x86_64-linux-gnu \
     -lQGLViewer-qt5
 

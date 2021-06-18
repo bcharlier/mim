@@ -1,18 +1,18 @@
 #ifndef DEFORMABLEOBJECT_H
 #define DEFORMABLEOBJECT_H
 
-#include "Vec3D.h"
-#include "Triangle.h"
+#include "Utils/Vec3D.h"
 #include <queue>
 
+template <class faces>
 class DeformableObject {
 public:
 
     DeformableObject() : normalDirection(1.) {}
 
-    DeformableObject(std::vector <Vec3Df> &vertices, std::vector <Triangle> &triangles) : vertices(vertices),
-                                                                                          triangles(triangles),
-                                                                                          normalDirection(1.) {
+    DeformableObject(std::vector <Vec3Df> &vertices, std::vector < faces > &triangles) : vertices(vertices),
+                                                                                         triangles(triangles),
+                                                                                         normalDirection(1.) {
         update();
     }
 
@@ -22,9 +22,9 @@ public:
 
     const std::vector <Vec3Df> &getVertices() const { return vertices; }
 
-    std::vector <Triangle> &getTriangles() { return triangles; }
+    std::vector <faces> &getTriangles() { return triangles; }
 
-    const std::vector <Triangle> &getTriangles() const { return triangles; }
+    const std::vector <faces> &getTriangles() const { return triangles; }
 
     unsigned int getVerticesNb() { return vertices.size(); }
 
@@ -59,10 +59,8 @@ protected:
 
     void glTriangle(unsigned int i);
 
-    void sortFaces(FacesQueue &facesQueue);
-
     std::vector <Vec3Df> vertices;
-    std::vector <Triangle> triangles;
+    std::vector <faces> triangles;
 
     std::vector <Vec3Df> normals;
     std::vector <Vec3Df> verticesNormals;

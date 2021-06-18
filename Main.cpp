@@ -1,8 +1,8 @@
 /****************************************************************************
 
 *****************************************************************************/
-#include "OpenGLIncludeQtComp.h"
-#include "Window.h"
+#include "Viewer/OpenGLIncludeQtComp.h"
+#include "Viewer/Window.h"
 #include <qapplication.h>
 
 int main(int argc, char **argv) {

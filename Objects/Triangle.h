@@ -56,6 +56,8 @@ public:
         return v[c];
     }
 
+    static const unsigned int dimension = 3;
+
 protected:
     inline void init(unsigned int v0, unsigned int v1, unsigned int v2) {
         v[0] = v0;
@@ -64,7 +66,7 @@ protected:
     }
 
 private:
-    unsigned int v[3];
+    unsigned int v[dimension];
 };
 
 extern std::ostream &operator<<(std::ostream &output, const Triangle &t);

@@ -24,13 +24,17 @@
 #pragma once
 
 #include <map>
-
+#include <assert.h>
 // -------------------------------------------------
 // Intermediate Edge structure for hashed adjacency
 // -------------------------------------------------
 
-struct Edge {
+class Edge {
+
 public:
+    inline Edge() {}
+    inline virtual ~Edge() {}
+
     inline Edge(unsigned int v0, unsigned int v1, float _size = 1.) {
         if (v0 < v1) {
             v[0] = v0;
@@ -49,8 +53,6 @@ public:
         size = e.size;
     }
 
-    inline virtual ~Edge() {}
-
     inline Edge &operator=(const Edge &e) {
         v[0] = e.v[0];
         v[1] = e.v[1];
@@ -58,23 +60,43 @@ public:
         return (*this);
     }
 
+    inline unsigned int getVertex(unsigned int i) const {
+        assert(i < 2 && "Give a index between 0 and 1 as a index for Edge");
+        return v[i]; }
+
+    inline void setVertex(unsigned int i, unsigned int vertex) {
+        assert(i < 2 && "Give a index between 0 and 1 as a index for Edge");
+        v[i] = vertex; }
+
+    inline void setVertices(unsigned int v0, unsigned int v1) { v[0] = v0; v[1] = v1; }
+
     inline bool operator==(const Edge &e) { return (v[0] == e.v[0] && v[1] == e.v[1]); }
 
     inline bool operator<(const Edge &e) const { return (v[0] < e.v[0] || (v[0] == e.v[0] && v[1] < e.v[1])); }
 
+    float operator[](unsigned int c) const {
+        assert(c < 2 && "Give a index between 0 and 1 as a index for Edge");
+        return v[c];
+    }
+
     inline bool contains(unsigned int i) const { return (v[0] == i || v[1] == i); }
 
-    unsigned int v[2];
     float size;
+
+    static const unsigned int dimension = 2;
+
+private:
+    unsigned int v[dimension];
+
 };
 
 struct compareEdge {
     inline bool operator()(const Edge e1, const Edge e2) const {
-        if (e1.v[0] < e2.v[0])
+        if (e1.getVertex(0) < e2.getVertex(0))
             return true;
-        if (e1.v[0] > e2.v[0])
+        if (e1.getVertex(0) > e2.getVertex(0))
             return false;
-        if (e1.v[1] > e2.v[1])
+        if (e1.getVertex(1) > e2.getVertex(1))
             return true;
         return false;
     }

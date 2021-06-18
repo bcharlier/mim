@@ -1,10 +1,11 @@
 #ifndef MESH_H
 #define MESH_H
 
-#include "DeformableObject.h"
+#include "Objects/DeformableObject.h"
+#include "Objects/Triangle.h"
 
 
-class Mesh : public DeformableObject {
+class Mesh : public DeformableObject< Triangle > {
 public:
 
     Mesh() {}
