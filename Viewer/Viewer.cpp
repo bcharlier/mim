@@ -52,6 +52,10 @@ void Viewer::init() {
     sphereScale = 0.5;
     manipulatorScale = 1.;
 
+    dimension = DIM3D;
+
+    camera_motion_activated = false;
+
 }
 
 void Viewer::initLightsAndMaterials() {
@@ -95,7 +99,19 @@ void Viewer::mousePressEvent(QMouseEvent *e) {
             manipulator->setDisplayScale(manipulatorScale * camera()->sceneRadius() / 9.);
         }
     }
-    QGLViewer::mousePressEvent(e);
+
+
+    if( (e->button() == Qt::RightButton) && dimension == DIM2D && !camera_motion_activated ){
+        camera_motion_activated = true;
+        previous_mouse_position = e->pos();
+        bool found;
+        int_mouse_w_position = camera()->pointUnderPixel(previous_mouse_position, found);
+        if( !found ) std::cout << "DIM2D::Init pb" <<std::endl;
+        camera_position = camera()->position();
+
+    } else {
+        QGLViewer::mousePressEvent(e);
+    }
 }
 
 void Viewer::mouseMoveEvent(QMouseEvent *e) {
@@ -110,8 +126,30 @@ void Viewer::mouseMoveEvent(QMouseEvent *e) {
         return;
     }
 
+    if( dimension == DIM3D ){
+        QGLViewer::mouseMoveEvent(e);
+    } else {
 
-    QGLViewer::mouseMoveEvent(e);
+        if( camera_motion_activated ){
+
+            QPoint delta = previous_mouse_position - e->pos();
+            qglviewer::Vec direction (delta.x(), -delta.y(), 0.);
+
+            direction =  0.05*camera()->flySpeed()*direction ;
+
+            bool found;
+            qglviewer::Vec point = camera()->pointUnderPixel(e->pos(), found);
+            if (found) {
+                direction = camera()->pointUnderPixel(previous_mouse_position, found) - point;
+           } else std::cout << "DIM2D::MouseMove pb" <<std::endl; //TODO fix
+
+
+            qglviewer::Vec cam_pos = camera_position + direction;
+            camera()->setPosition(cam_pos);
+            camera()->lookAt( qglviewer::Vec ( cam_pos.x, cam_pos.y, 0. ) );
+            update();
+        }
+    }
 }
 
 void Viewer::mouseReleaseEvent(QMouseEvent *e) {
@@ -126,6 +164,10 @@ void Viewer::mouseReleaseEvent(QMouseEvent *e) {
         update();
         return;
 
+    }
+
+    if( camera_motion_activated ){
+        camera_motion_activated = false;
     }
 
     QGLViewer::mouseReleaseEvent(e);
@@ -262,7 +304,7 @@ void Viewer::openModel(const QString &filename) {
         FileIO::openCFF(filename.toStdString(), vertices, edges);
         model_curve.update();
     } else {
-       std::cout << "Viewer::openModel::Unsupported mesh file format " << std::endl;
+        std::cout << "Viewer::openModel::Unsupported mesh file format " << std::endl;
     }
 
 
@@ -276,18 +318,18 @@ void Viewer::saveCamera(const QString &filename) {
         exit(EXIT_FAILURE);
 
     out << camera()->position() << " " <<
-        camera()->viewDirection() << " " <<
-        camera()->upVector() << " " <<
-        camera()->fieldOfView();
+           camera()->viewDirection() << " " <<
+           camera()->upVector() << " " <<
+           camera()->fieldOfView();
     out << std::endl;
     out.close();
 }
 
 std::istream &operator>>(std::istream &stream, qglviewer::Vec &v) {
     stream >>
-           v.x >>
-           v.y >>
-           v.z;
+            v.x >>
+            v.y >>
+            v.z;
 
     return stream;
 }
@@ -303,9 +345,9 @@ void Viewer::openCamera(const QString &filename) {
     float fov;
 
     file >> pos >>
-         view >>
-         up >>
-         fov;
+            view >>
+            up >>
+            fov;
 
     camera()->setPosition(pos);
     camera()->setViewDirection(view);
@@ -324,25 +366,25 @@ void Viewer::saveOFF(const QString &filename) {
 
 
 void Viewer::updateViewer() {
-std::cout <<  " radius0 " << std::endl;
+    std::cout <<  " radius0 " << std::endl;
     curve.update();
-std::cout <<  " radius0 " << std::endl;
+    std::cout <<  " radius0 " << std::endl;
     mesh.update();
 
     std::vector <Vec3Df> &vertices_curve = curve.getVertices();
     //std::vector <Vec3Df> vertices_curve;
     std::vector <Vec3Df> &vertices = mesh.getVertices();
 
-std::cout <<  " radius " << std::endl;
-std::cout <<  " nb_vet_curve " << vertices_curve.size() <<  std::endl;
-std::cout <<  " nb_vert " << vertices.size() <<  std::endl;
+    std::cout <<  " radius " << std::endl;
+    std::cout <<  " nb_vet_curve " << vertices_curve.size() <<  std::endl;
+    std::cout <<  " nb_vert " << vertices.size() <<  std::endl;
     std::vector <Vec3Df> tmp = vertices_curve;
     tmp.insert(
-          tmp.end(),
-          std::make_move_iterator(vertices.begin()),
-          std::make_move_iterator(vertices.end())
-        );
-/*
+                tmp.end(),
+                std::make_move_iterator(vertices.begin()),
+                std::make_move_iterator(vertices.end())
+                );
+    /*
     Vec3Df err; err[0] = 0.; err[1] = 0.; err[2] = 0.;
     for(auto i=0; i<  vertices_curve.size() + vertices.size(); ++i) {
         std::cout << (tmp[i] - tmp2[i]) *(tmp[i] - tmp2[i]) << std::endl;
@@ -459,17 +501,35 @@ void Viewer::changeDisplayMode() {
     update();
 }
 
+
+void Viewer::setMode( Mode dim ){
+    dimension = dim;
+    if( dimension == DIM3D ) {
+        camera()->setType(Camera::PERSPECTIVE);
+        updateViewer();
+    }
+    else {
+        camera()->setPosition(qglviewer::Vec(0.,0.,1));
+        camera()->lookAt(qglviewer::Vec(0.,0.,0.));
+        camera()->setUpVector(qglviewer::Vec(0.,1.,0.));
+        camera()->setType(Camera::ORTHOGRAPHIC);
+        updateViewer();
+    }
+
+    update();
+}
+
 void Viewer::keyPressEvent(QKeyEvent *e) {
     switch (e->key()) {
-        case Qt::Key_D :
-            changeDisplayMode();
-            break;
-        case Qt::Key_Z :
-            if (e->modifiers() & Qt::ControlModifier) restaureLastState();
-            update();
-            break;
-        default :
-            QGLViewer::keyPressEvent(e);
+    case Qt::Key_D :
+        changeDisplayMode();
+        break;
+    case Qt::Key_Z :
+        if (e->modifiers() & Qt::ControlModifier) restaureLastState();
+        update();
+        break;
+    default :
+        QGLViewer::keyPressEvent(e);
     }
 }
 

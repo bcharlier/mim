@@ -135,7 +135,7 @@ void Window::openMeshModel() {
     QString selectedFilter, openFileNameLabel;
 
 
-    QString fileFilter = "Known Filetypes (*.obj *.off);;OBJ (*.obj);;OFF (*.off)";
+    QString fileFilter = "Known Filetypes (*.obj *.off *.cff);;OBJ (*.obj);;OFF (*.off);; CFF (*.cff)";
 
     QString fileName = QFileDialog::getOpenFileName(this,
                                                     tr("Select an input mesh"),
@@ -169,6 +169,13 @@ void Window::initFileActions() {
     fileSaveMeshAction->setShortcut(tr("Ctrl+S"));
     connect(fileSaveMeshAction, SIGNAL(triggered()), this, SLOT(saveMesh()));
 
+    dimAction = new QAction("3D", this);
+    dimAction->setShortcut(tr("Ctrl+2"));
+    dimAction->setCheckable(true);
+    dimAction->setChecked(true);
+
+    connect(dimAction, SIGNAL(triggered()), this, SLOT(switchDim()));
+
     QAction *fileQuitAction = new QAction(QPixmap("../Icons/exit.png"), "Quit", this);
     fileQuitAction->setShortcut(tr("Ctrl+Q"));
     connect(fileQuitAction, SIGNAL(triggered()), qApp, SLOT(closeAllWindows()));
@@ -179,7 +186,28 @@ void Window::initFileActions() {
     fileActionGroup->addAction(fileOpenMeshModelAction);
     fileActionGroup->addAction(fileSaveMeshAction);
 
+
+    fileActionGroup->addAction(dimAction);
+    fileActionGroup->setExclusive(true);
+
     fileActionGroup->addAction(fileQuitAction);
+}
+
+void Window::switchDim(){
+
+
+    if( dimension == DIM3D ){
+        dimAction->setChecked(false);
+        dimAction->setText("2D");
+        dimension = DIM2D;
+    } else {
+        dimAction->setChecked(true);
+        dimAction->setText("3D");
+        dimension = DIM3D;
+    }
+
+    viewer->setMode(dimension);
+
 }
 
 

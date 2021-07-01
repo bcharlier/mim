@@ -12,7 +12,7 @@
 #include "Objects/Curve.h"
 
 enum Mode {
-    DIM2D, DIM3D
+    DIM2D = 0, DIM3D = 1
 };
 
 enum DisplayMode {
@@ -98,8 +98,14 @@ protected :
     double sphereScale;
     double manipulatorScale;
 
-public
-    slots :
+    Mode dimension;
+
+    bool camera_motion_activated;
+    QPoint previous_mouse_position;
+    qglviewer::Vec camera_position;
+    qglviewer::Vec int_mouse_w_position;
+
+public slots :
             void manipulatorReleased();
 
     void addToSelection(QRectF const &, bool);
@@ -124,6 +130,8 @@ public
         mesh.invertNormal();
         update();
     }
+
+    void setMode( Mode dim );
 
     void reset();
 

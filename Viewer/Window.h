@@ -32,10 +32,13 @@ private:
 
     QTabWidget *contents;
 
-private
-    slots:
+    QAction *dimAction;
 
-            void saveMesh();
+    Mode dimension = DIM3D;
+
+private slots:
+
+    void saveMesh();
 
     void open();
 
@@ -44,6 +47,10 @@ private
     void saveCamera();
 
     void openCamera();
+
+    void switchDim();
+
+
 
 };
 

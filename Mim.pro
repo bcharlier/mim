@@ -17,13 +17,14 @@ CONFIG += release \
     console \
     embed_manifest_exe
 
-INCLUDEPATH = ./Manipulator \
+INCLUDEPATH += ./Manipulator \
     Objects/ \
     Viewer/ \
     Utils/
 HEADERS += Viewer/Window.h \
     Objects/Curve.h \
     Objects/DeformableObject.h \
+    Objects/DeformableObjectManager.h \
     Viewer/Viewer.h \
     Manipulator/PCATools.h \
     Manipulator/Manipulator.h \
@@ -35,6 +36,7 @@ HEADERS += Viewer/Window.h \
     Objects/Mesh.h \
     Viewer/OpenGLIncludeQtComp.h
 SOURCES += Viewer/Window.cpp \
+    Objects/DeformableObjectManager.cpp \
     Objects/Curve.cpp \
     Viewer/Viewer.cpp \
     Main.cpp \
