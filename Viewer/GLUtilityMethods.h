@@ -427,8 +427,8 @@ namespace FileIO {
             exit(1);
         }
 
-        int n_vertices, n_faces;
-        myfile >> n_vertices >> n_faces;
+        int n_vertices, n_faces, n_edges;
+        myfile >> n_vertices >> n_faces >> n_edges;
 
         std::cout << "nb ver and faces: " << n_vertices  << " " << n_faces << std::endl;
 
