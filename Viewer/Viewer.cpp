@@ -83,12 +83,15 @@ void Viewer::mousePressEvent(QMouseEvent *e) {
     } else if ((e->button() == Qt::MidButton) && (e->modifiers() & Qt::ControlModifier)) {
         manipulator->clear();
         manipulator->setDisplayScale(manipulatorScale * camera()->sceneRadius() / 9.);
+
     } else if ((e->button() == Qt::LeftButton) && (e->modifiers() & Qt::ControlModifier)) {
         bool found;
         qglviewer::Vec point = camera()->pointUnderPixel(e->pos(), found);
         if (found) {
             manipulator->clear();
             manipulator->setDisplayScale(manipulatorScale * camera()->sceneRadius() / 9.);
+            manipulator->setOrigine(point);
+            manipulator->activate();
         }
     } else if ((e->button() == Qt::RightButton) && (e->modifiers() & Qt::ControlModifier)) {
         bool found;
@@ -101,14 +104,18 @@ void Viewer::mousePressEvent(QMouseEvent *e) {
     }
 
 
-    if( (e->button() == Qt::LeftButton) && dimension == DIM2D && !camera_motion_activated ){
-        camera_motion_activated = true;
-        previous_mouse_position = e->pos();
-        bool found;
-        int_mouse_w_position = camera()->pointUnderPixel(previous_mouse_position, found);
-        if( !found ) std::cout << "DIM2D::Init pb" <<std::endl;
-        camera_position = camera()->position();
+    if( dimension == DIM2D ){
 
+        if( (e->button() == Qt::RightButton) && !camera_motion_activated ){
+            camera_motion_activated = true;
+            previous_mouse_position = e->pos();
+            bool found;
+            int_mouse_w_position = camera()->pointUnderPixel(previous_mouse_position, found);
+            if( !found ) std::cout << "DIM2D::Init pb" <<std::endl;
+            camera_position = camera()->position();
+        } else {
+            manipulator->mousePressEvent(e, camera());
+        }
     } else {
         QGLViewer::mousePressEvent(e);
     }
@@ -141,7 +148,7 @@ void Viewer::mouseMoveEvent(QMouseEvent *e) {
             qglviewer::Vec point = camera()->pointUnderPixel(e->pos(), found);
             if (found) {
                 direction = camera()->pointUnderPixel(previous_mouse_position, found) - point;
-           } else std::cout << "DIM2D::MouseMove pb" <<std::endl; //TODO fix
+            } else std::cout << "DIM2D::MouseMove pb" <<std::endl; //TODO fix
 
 
             qglviewer::Vec cam_pos = camera_position + direction;
@@ -434,6 +441,7 @@ void Viewer::reset() {
 void Viewer::draw() {
 
     if( dimension == DIM2D ){
+        glDisable(GL_LIGHTING);
         glColor3f(1.f,1.f,1.f);
         glBegin(GL_QUADS);
         glVertex3f(-100.f, -100.f, -0.0001f);
@@ -441,6 +449,7 @@ void Viewer::draw() {
         glVertex3f(100.f, 100.f, -0.0001f);
         glVertex3f(100.f, -100.f, -0.0001f);
         glEnd();
+        glEnable(GL_LIGHTING);
     }
 
     if (displayMode == LIGHTED || displayMode == LIGHTED_WIRE) {
@@ -461,11 +470,15 @@ void Viewer::draw() {
 
     glLineWidth(5.f);
     glColor3f(0., 0., 0.);
+    glDisable(GL_LIGHTING);
     curve.draw();
-    mesh.draw();
-
     glColor3f(0.37, 0.82, 0.55);
     model_curve.draw();
+
+    glEnable(GL_LIGHTING);
+    glColor3f(0.37,0.55,0.82);
+    mesh.draw();
+    glColor3f(0.37, 0.82, 0.55);
     model_mesh.draw();
 
     if (displayMode == SOLID || displayMode == LIGHTED_WIRE) {

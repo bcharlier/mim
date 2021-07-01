@@ -75,6 +75,7 @@ public:
         RepX = qglviewer::Vec(1, 0, 0);
         RepY = qglviewer::Vec(0, 1, 0);
         RepZ = qglviewer::Vec(0, 0, 1);
+        Origine = qglviewer::Vec(0, 0, 0);
         display_scale = 1.f;
         mode_modification = 0.f;
         Xscale = Yscale = Zscale = 1.f;

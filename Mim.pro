@@ -20,8 +20,10 @@ CONFIG += release \
 INCLUDEPATH += ./Manipulator \
     Objects/ \
     Viewer/ \
-    Utils/
+    Utils/ \
+    Deformations/
 HEADERS += Viewer/Window.h \
+    Deformations/Modules.h \
     Objects/Curve.h \
     Objects/DeformableObject.h \
     Objects/DeformableObjectManager.h \
@@ -36,6 +38,7 @@ HEADERS += Viewer/Window.h \
     Objects/Mesh.h \
     Viewer/OpenGLIncludeQtComp.h
 SOURCES += Viewer/Window.cpp \
+    Deformations/Modules.cpp \
     Objects/DeformableObjectManager.cpp \
     Objects/Curve.cpp \
     Viewer/Viewer.cpp \
