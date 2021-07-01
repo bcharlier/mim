@@ -105,6 +105,8 @@ protected :
     qglviewer::Vec camera_position;
     qglviewer::Vec int_mouse_w_position;
 
+
+
 public slots :
             void manipulatorReleased();
 

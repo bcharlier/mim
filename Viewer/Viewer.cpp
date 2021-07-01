@@ -101,7 +101,7 @@ void Viewer::mousePressEvent(QMouseEvent *e) {
     }
 
 
-    if( (e->button() == Qt::RightButton) && dimension == DIM2D && !camera_motion_activated ){
+    if( (e->button() == Qt::LeftButton) && dimension == DIM2D && !camera_motion_activated ){
         camera_motion_activated = true;
         previous_mouse_position = e->pos();
         bool found;
@@ -433,6 +433,16 @@ void Viewer::reset() {
 
 void Viewer::draw() {
 
+    if( dimension == DIM2D ){
+        glColor3f(1.f,1.f,1.f);
+        glBegin(GL_QUADS);
+        glVertex3f(-100.f, -100.f, -0.0001f);
+        glVertex3f(-100.f, 100.f, -0.0001f);
+        glVertex3f(100.f, 100.f, -0.0001f);
+        glVertex3f(100.f, -100.f, -0.0001f);
+        glEnd();
+    }
+
     if (displayMode == LIGHTED || displayMode == LIGHTED_WIRE) {
 
         glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
@@ -449,7 +459,8 @@ void Viewer::draw() {
 
     }
 
-    glColor3f(1., 1., 1.);
+    glLineWidth(5.f);
+    glColor3f(0., 0., 0.);
     curve.draw();
     mesh.draw();
 
