@@ -68,6 +68,7 @@ class SimpleManipulator : public QObject, public qglviewer::MouseGrabber {
 
     float m_xx_default, m_yy_default;
 
+    int dimension;
 
 public:
     SimpleManipulator() {
@@ -80,6 +81,7 @@ public:
         mode_modification = 0.f;
         Xscale = Yscale = Zscale = 1.f;
         mode_grabbing = 1;
+        dimension =3;
     }
 
     ~SimpleManipulator() {}
@@ -101,6 +103,9 @@ public:
 
     void setRepZ(qglviewer::Vec const &p) { RepZ = p; }
 
+    void setDim2D (){ dimension = 2; }
+
+    void setDim3D (){ dimension = 3; }
 
     void setDisplayScale(float ds) { display_scale = ds; }
 
@@ -179,41 +184,45 @@ public:
                 p = Origine + 2 * display_scale * RepY;
                 glVertex3f(p[0], p[1], p[2]);
 
-                if (mode_modification == 3)
-                    glColor3fv(Selection);
-                else
-                    glColor3fv(CZ);
-                p = Origine - 2 * display_scale * RepZ;
-                glVertex3f(p[0], p[1], p[2]);
-                p = Origine + 2 * display_scale * RepZ;
-                glVertex3f(p[0], p[1], p[2]);
-                glEnd();
 
                 float teta;
-                glBegin(GL_LINE_LOOP);
-                if (mode_modification == 4)
-                    glColor3fv(Selection);
-                else
-                    glColor3fv(CX);
-                for (int i = 0; i < 360; i += 5) {
-                    teta = (float) (i) * 3.1415927 / float(180);
-                    p = Origine + display_scale * cosf(teta) * RepY + display_scale * sinf(teta) * RepZ;
-                    glVertex3f(p[0], p[1], p[2]);
-                }
-                glEnd();
+                if( dimension > 2 ){
 
-                glBegin(GL_LINE_LOOP);
-                if (mode_modification == 5)
-                    glColor3fv(Selection);
-                else
-                    glColor3fv(CY);
-                for (int i = 0; i < 360; i += 5) {
-                    teta = (float) (i) * 3.1415927 / float(180);
-                    p = Origine + display_scale * cosf(teta) * RepX + display_scale * sinf(teta) * RepZ;
+                    if (mode_modification == 3)
+                        glColor3fv(Selection);
+                    else
+                        glColor3fv(CZ);
+                    p = Origine - 2 * display_scale * RepZ;
                     glVertex3f(p[0], p[1], p[2]);
-                }
-                glEnd();
+                    p = Origine + 2 * display_scale * RepZ;
+                    glVertex3f(p[0], p[1], p[2]);
+                    glEnd();
 
+                    glBegin(GL_LINE_LOOP);
+                    if (mode_modification == 4)
+                        glColor3fv(Selection);
+                    else
+                        glColor3fv(CX);
+                    for (int i = 0; i < 360; i += 5) {
+                        teta = (float) (i) * 3.1415927 / float(180);
+                        p = Origine + display_scale * cosf(teta) * RepY + display_scale * sinf(teta) * RepZ;
+                        glVertex3f(p[0], p[1], p[2]);
+                    }
+                    glEnd();
+
+                    glBegin(GL_LINE_LOOP);
+                    if (mode_modification == 5)
+                        glColor3fv(Selection);
+                    else
+                        glColor3fv(CY);
+                    for (int i = 0; i < 360; i += 5) {
+                        teta = (float) (i) * 3.1415927 / float(180);
+                        p = Origine + display_scale * cosf(teta) * RepX + display_scale * sinf(teta) * RepZ;
+                        glVertex3f(p[0], p[1], p[2]);
+                    }
+                    glEnd();
+
+                }
                 glBegin(GL_LINE_LOOP);
                 if (mode_modification == 6)
                     glColor3fv(Selection);
@@ -246,15 +255,16 @@ public:
                 p = Origine - (1.5 * Yscale * display_scale) * RepY;
                 BasicGL::drawSphere(p[0], p[1], p[2], display_scale / 15, 5, 5);
 
-
-                if (mode_modification == 9 || mode_modification == -9)
-                    glColor3fv(Selection);
-                else
-                    glColor3fv(CZ);
-                p = Origine + (1.5 * Zscale * display_scale) * RepZ;
-                BasicGL::drawSphere(p[0], p[1], p[2], display_scale / 15, 5, 5);
-                p = Origine - (1.5 * Zscale * display_scale) * RepZ;
-                BasicGL::drawSphere(p[0], p[1], p[2], display_scale / 15, 5, 5);
+                if( dimension > 2 ){
+                    if (mode_modification == 9 || mode_modification == -9)
+                        glColor3fv(Selection);
+                    else
+                        glColor3fv(CZ);
+                    p = Origine + (1.5 * Zscale * display_scale) * RepZ;
+                    BasicGL::drawSphere(p[0], p[1], p[2], display_scale / 15, 5, 5);
+                    p = Origine - (1.5 * Zscale * display_scale) * RepZ;
+                    BasicGL::drawSphere(p[0], p[1], p[2], display_scale / 15, 5, 5);
+                }
             }
         }
     }
@@ -286,194 +296,194 @@ public:
         // Clic gauche : passer  l'tat suivant
         // Clic droit : reprendre l'tat prcdent
         switch (etat) {
-            case 0:
-                setGrabsMouse(false);
-                // Dans cet tat, la sphre est dsactive
-                break;
+        case 0:
+            setGrabsMouse(false);
+            // Dans cet tat, la sphre est dsactive
+            break;
 
-            case 1:
-                // Dans cet tat, on vrifie si l'utilisateur a cliqu dans une zone d'influence du SimpleManipulator
-                if (!mouse_released) {
+        case 1:
+            // Dans cet tat, on vrifie si l'utilisateur a cliqu dans une zone d'influence du SimpleManipulator
+            if (!mouse_released) {
+                setGrabsMouse(true);
+                return;
+            }
+
+            if (mode_grabbing == 0) {
+                // check if we are close to Origine : TODO
+                {
+                    qreal res[3];
+                    qreal rmax[3];
+                    qreal origin[3];
+                    origin[0] = Origine[0];
+                    origin[1] = Origine[1];
+                    origin[2] = Origine[2];
+                    cam->getProjectedCoordinatesOf(origin, res);
+
+                    origin[0] = Origine[0] + display_scale * 0.5;
+                    cam->getProjectedCoordinatesOf(origin, rmax);
+
+                    if ((x - res[0]) * (x - res[0]) + (y - res[1]) * (y - res[1]) <
+                            (rmax[0] - res[0]) * (rmax[0] - res[0]) + (rmax[1] - res[1]) * (rmax[1] - res[1])) {
+                        setGrabsMouse(true);
+                        mode_modification = 10;
+                        return;
+                    } else {
+                        setGrabsMouse(false);
+                        //    mode_modification = rien;
+                        return;
+                    }
+                }
+            }
+
+
+            if (mode_grabbing == 1) {
+                cam->convertClickToLine(QPoint(x, y), eye, dir);
+                Eye = qglviewer::Vec(eye[0], eye[1], eye[2]);
+                Dir = qglviewer::Vec(dir[0], dir[1], dir[2]);
+
+
+
+                ///////////////////////////////////////  Dilatations:   ///////////////////////////////////////
+
+                // Check on sx :
+                X = Origine + (1.5 * Xscale * display_scale) * RepX;
+                lambda = (X - Eye) * (X - Eye) - ((X - Eye) * (Dir)) * ((X - Eye) * (Dir)) / (Dir * Dir);
+                if (lambda < display_scale * display_scale / 100) {
+                    mode_modification = 7;
+                    setGrabsMouse(true);
+                    return;
+                }
+                X = Origine - (1.5 * Xscale * display_scale) * RepX;
+                lambda = (X - Eye) * (X - Eye) - ((X - Eye) * (Dir)) * ((X - Eye) * (Dir)) / (Dir * Dir);
+                if (lambda < display_scale * display_scale / 100) {
+                    mode_modification = -7;
                     setGrabsMouse(true);
                     return;
                 }
 
-                if (mode_grabbing == 0) {
-                    // check if we are close to Origine : TODO
-                    {
-                        qreal res[3];
-                        qreal rmax[3];
-                        qreal origin[3];
-                        origin[0] = Origine[0];
-                        origin[1] = Origine[1];
-                        origin[2] = Origine[2];
-                        cam->getProjectedCoordinatesOf(origin, res);
+                // Check on sy :
+                X = Origine + (1.5 * Yscale * display_scale) * RepY;
+                lambda = (X - Eye) * (X - Eye) - ((X - Eye) * (Dir)) * ((X - Eye) * (Dir)) / (Dir * Dir);
+                if (lambda < display_scale * display_scale / 100) {
+                    mode_modification = 8;
+                    setGrabsMouse(true);
+                    return;
+                }
+                X = Origine - (1.5 * Yscale * display_scale) * RepY;
+                lambda = (X - Eye) * (X - Eye) - ((X - Eye) * (Dir)) * ((X - Eye) * (Dir)) / (Dir * Dir);
+                if (lambda < display_scale * display_scale / 100) {
+                    mode_modification = -8;
+                    setGrabsMouse(true);
+                    return;
+                }
 
-                        origin[0] = Origine[0] + display_scale * 0.5;
-                        cam->getProjectedCoordinatesOf(origin, rmax);
-
-                        if ((x - res[0]) * (x - res[0]) + (y - res[1]) * (y - res[1]) <
-                            (rmax[0] - res[0]) * (rmax[0] - res[0]) + (rmax[1] - res[1]) * (rmax[1] - res[1])) {
-                            setGrabsMouse(true);
-                            mode_modification = 10;
-                            return;
-                        } else {
-                            setGrabsMouse(false);
-                            //    mode_modification = rien;
-                            return;
-                        }
-                    }
+                // Check on sz :
+                X = Origine + (1.5 * Zscale * display_scale) * RepZ;
+                lambda = (X - Eye) * (X - Eye) - ((X - Eye) * (Dir)) * ((X - Eye) * (Dir)) / (Dir * Dir);
+                if (lambda < display_scale * display_scale / 100) {
+                    mode_modification = 9;
+                    setGrabsMouse(true);
+                    return;
+                }
+                X = Origine - (1.5 * Zscale * display_scale) * RepZ;
+                lambda = (X - Eye) * (X - Eye) - ((X - Eye) * (Dir)) * ((X - Eye) * (Dir)) / (Dir * Dir);
+                if (lambda < display_scale * display_scale / 100) {
+                    mode_modification = -9;
+                    setGrabsMouse(true);
+                    return;
                 }
 
 
-                if (mode_grabbing == 1) {
-                    cam->convertClickToLine(QPoint(x, y), eye, dir);
-                    Eye = qglviewer::Vec(eye[0], eye[1], eye[2]);
-                    Dir = qglviewer::Vec(dir[0], dir[1], dir[2]);
-
-
-
-                    ///////////////////////////////////////  Dilatations:   ///////////////////////////////////////
-
-                    // Check on sx :
-                    X = Origine + (1.5 * Xscale * display_scale) * RepX;
-                    lambda = (X - Eye) * (X - Eye) - ((X - Eye) * (Dir)) * ((X - Eye) * (Dir)) / (Dir * Dir);
-                    if (lambda < display_scale * display_scale / 100) {
-                        mode_modification = 7;
-                        setGrabsMouse(true);
-                        return;
-                    }
-                    X = Origine - (1.5 * Xscale * display_scale) * RepX;
-                    lambda = (X - Eye) * (X - Eye) - ((X - Eye) * (Dir)) * ((X - Eye) * (Dir)) / (Dir * Dir);
-                    if (lambda < display_scale * display_scale / 100) {
-                        mode_modification = -7;
-                        setGrabsMouse(true);
-                        return;
-                    }
-
-                    // Check on sy :
-                    X = Origine + (1.5 * Yscale * display_scale) * RepY;
-                    lambda = (X - Eye) * (X - Eye) - ((X - Eye) * (Dir)) * ((X - Eye) * (Dir)) / (Dir * Dir);
-                    if (lambda < display_scale * display_scale / 100) {
-                        mode_modification = 8;
-                        setGrabsMouse(true);
-                        return;
-                    }
-                    X = Origine - (1.5 * Yscale * display_scale) * RepY;
-                    lambda = (X - Eye) * (X - Eye) - ((X - Eye) * (Dir)) * ((X - Eye) * (Dir)) / (Dir * Dir);
-                    if (lambda < display_scale * display_scale / 100) {
-                        mode_modification = -8;
-                        setGrabsMouse(true);
-                        return;
-                    }
-
-                    // Check on sz :
-                    X = Origine + (1.5 * Zscale * display_scale) * RepZ;
-                    lambda = (X - Eye) * (X - Eye) - ((X - Eye) * (Dir)) * ((X - Eye) * (Dir)) / (Dir * Dir);
-                    if (lambda < display_scale * display_scale / 100) {
-                        mode_modification = 9;
-                        setGrabsMouse(true);
-                        return;
-                    }
-                    X = Origine - (1.5 * Zscale * display_scale) * RepZ;
-                    lambda = (X - Eye) * (X - Eye) - ((X - Eye) * (Dir)) * ((X - Eye) * (Dir)) / (Dir * Dir);
-                    if (lambda < display_scale * display_scale / 100) {
-                        mode_modification = -9;
-                        setGrabsMouse(true);
-                        return;
-                    }
 
 
 
 
 
+                ///////////////////////////////////////  Rotations:   ///////////////////////////////////////
 
-
-                    ///////////////////////////////////////  Rotations:   ///////////////////////////////////////
-
-                    // Check on rx :
-                    lambda = ((Origine - Eye) * (RepX)) / ((Dir) * (RepX));
-                    X = Eye + lambda * Dir;
-                    if (fabs(((X - Origine) * (X - Origine)) / (display_scale * display_scale) - 1) <
+                // Check on rx :
+                lambda = ((Origine - Eye) * (RepX)) / ((Dir) * (RepX));
+                X = Eye + lambda * Dir;
+                if (fabs(((X - Origine) * (X - Origine)) / (display_scale * display_scale) - 1) <
                         epsilon_rotation_detect) {
-                        mode_modification = 4;
-                        setGrabsMouse(true);
-                        return;
-                    }
-
-                    // Check on ry :
-                    lambda = ((Origine - Eye) * (RepY)) / ((Dir) * (RepY));
-                    X = Eye + lambda * Dir;
-                    if (fabs(((X - Origine) * (X - Origine)) / (display_scale * display_scale) - 1) <
-                        epsilon_rotation_detect) {
-                        mode_modification = 5;
-                        setGrabsMouse(true);
-                        return;
-                    }
-
-                    // Check on rz :
-                    lambda = ((Origine - Eye) * (RepZ)) / ((Dir) * (RepZ));
-                    X = Eye + lambda * Dir;
-                    if (fabs(((X - Origine) * (X - Origine)) / (display_scale * display_scale) - 1) <
-                        epsilon_rotation_detect) {
-                        mode_modification = 6;
-                        setGrabsMouse(true);
-                        return;
-                    }
-
-
-
-
-
-
-                    ///////////////////////////////////////  Translations:   ///////////////////////////////////////
-
-                    // Check on tx :
-                    d = cross(RepX, Dir);
-                    e = cross(Dir, d);
-                    lambda = ((Eye - Origine) * (e)) / (RepX * e);
-                    X = Origine + lambda * RepX;
-                    if (lambda < 2.2 * display_scale && lambda > -2.2 * display_scale) {
-                        Z = Eye + (Dir * (X - Eye)) * Dir / sqrt((Dir * Dir));
-                        if (((Z - X) * (Z - X)) < display_scale * display_scale * epsilon_tranlation_detect) {
-                            mode_modification = 1;
-                            setGrabsMouse(true);
-                            return;
-                        }
-                    }
-
-                    // Check on ty :
-                    d = cross(RepY, Dir);
-                    e = cross(Dir, d);
-                    lambda = ((Eye - Origine) * (e)) / (RepY * e);
-                    X = Origine + lambda * RepY;
-                    if (lambda < 2.2 * display_scale && lambda > -2.2 * display_scale) {
-                        Z = Eye + (Dir * (X - Eye)) * Dir / sqrt((Dir * Dir));
-                        if (((Z - X) * (Z - X)) < display_scale * display_scale * epsilon_tranlation_detect) {
-                            mode_modification = 2;
-                            setGrabsMouse(true);
-                            return;
-                        }
-                    }
-
-                    // Check on tz :
-                    d = cross(RepZ, Dir);
-                    e = cross(Dir, d);
-                    lambda = ((Eye - Origine) * (e)) / (RepZ * e);
-                    X = Origine + lambda * RepZ;
-                    if (lambda < 2.2 * display_scale && lambda > -2.2 * display_scale) {
-                        Z = Eye + (Dir * (X - Eye)) * Dir / sqrt((Dir * Dir));
-                        if (((Z - X) * (Z - X)) < display_scale * display_scale * epsilon_tranlation_detect) {
-                            mode_modification = 3;
-                            setGrabsMouse(true);
-                            return;
-                        }
-                    }
-
-                    mode_modification = 0;
-                    setGrabsMouse(false);
-                    break;
+                    mode_modification = 4;
+                    setGrabsMouse(true);
+                    return;
                 }
+
+                // Check on ry :
+                lambda = ((Origine - Eye) * (RepY)) / ((Dir) * (RepY));
+                X = Eye + lambda * Dir;
+                if (fabs(((X - Origine) * (X - Origine)) / (display_scale * display_scale) - 1) <
+                        epsilon_rotation_detect) {
+                    mode_modification = 5;
+                    setGrabsMouse(true);
+                    return;
+                }
+
+                // Check on rz :
+                lambda = ((Origine - Eye) * (RepZ)) / ((Dir) * (RepZ));
+                X = Eye + lambda * Dir;
+                if (fabs(((X - Origine) * (X - Origine)) / (display_scale * display_scale) - 1) <
+                        epsilon_rotation_detect) {
+                    mode_modification = 6;
+                    setGrabsMouse(true);
+                    return;
+                }
+
+
+
+
+
+
+                ///////////////////////////////////////  Translations:   ///////////////////////////////////////
+
+                // Check on tx :
+                d = cross(RepX, Dir);
+                e = cross(Dir, d);
+                lambda = ((Eye - Origine) * (e)) / (RepX * e);
+                X = Origine + lambda * RepX;
+                if (lambda < 2.2 * display_scale && lambda > -2.2 * display_scale) {
+                    Z = Eye + (Dir * (X - Eye)) * Dir / sqrt((Dir * Dir));
+                    if (((Z - X) * (Z - X)) < display_scale * display_scale * epsilon_tranlation_detect) {
+                        mode_modification = 1;
+                        setGrabsMouse(true);
+                        return;
+                    }
+                }
+
+                // Check on ty :
+                d = cross(RepY, Dir);
+                e = cross(Dir, d);
+                lambda = ((Eye - Origine) * (e)) / (RepY * e);
+                X = Origine + lambda * RepY;
+                if (lambda < 2.2 * display_scale && lambda > -2.2 * display_scale) {
+                    Z = Eye + (Dir * (X - Eye)) * Dir / sqrt((Dir * Dir));
+                    if (((Z - X) * (Z - X)) < display_scale * display_scale * epsilon_tranlation_detect) {
+                        mode_modification = 2;
+                        setGrabsMouse(true);
+                        return;
+                    }
+                }
+
+                // Check on tz :
+                d = cross(RepZ, Dir);
+                e = cross(Dir, d);
+                lambda = ((Eye - Origine) * (e)) / (RepZ * e);
+                X = Origine + lambda * RepZ;
+                if (lambda < 2.2 * display_scale && lambda > -2.2 * display_scale) {
+                    Z = Eye + (Dir * (X - Eye)) * Dir / sqrt((Dir * Dir));
+                    if (((Z - X) * (Z - X)) < display_scale * display_scale * epsilon_tranlation_detect) {
+                        mode_modification = 3;
+                        setGrabsMouse(true);
+                        return;
+                    }
+                }
+
+                mode_modification = 0;
+                setGrabsMouse(false);
+                break;
+            }
         }
     }
 
@@ -620,7 +630,7 @@ public:
                 double _yy = event->y();
 
                 if (mode_modification ==
-                    10) // special mode_modification introduced to handle direct grabbing (drag and drop)
+                        10) // special mode_modification introduced to handle direct grabbing (drag and drop)
                 {
                     // set new position in the plane that is parallel to the screen:
                     qreal p_cam[3];
@@ -654,128 +664,128 @@ public:
                 Dir = qglviewer::Vec(dir[0], dir[1], dir[2]);
 
                 switch (mode_modification) {
-                    case 1:
-                        // Alors on doit trouver le point sur la droite (Origine,RepX) qui est le plus proche du rayon
-                        d = cross(RepX, Dir);
-                        e = cross(Dir, d);
-                        lambda = ((Eye - Origine) * e) / (RepX * e);
-                        NewPos = Origine + lambda * RepX;
-                        Origine += NewPos - PrevPos;
-                        PrevPos = NewPos;
-                        manipulatedCallback();
-                        break;
-                    case 2:
-                        // Alors on doit trouver le point sur la droite (Origine,RepY) qui est le plus proche du rayon
-                        d = cross(RepY, Dir);
-                        e = cross(Dir, d);
-                        lambda = ((Eye - Origine) * e) / (RepY * e);
-                        NewPos = Origine + lambda * RepY;
-                        Origine += NewPos - PrevPos;
-                        PrevPos = NewPos;
-                        manipulatedCallback();
-                        break;
-                    case 3:
-                        // Alors on doit trouver le point sur la droite (Origine,RepZ) qui est le plus proche du rayon
-                        d = cross(RepZ, Dir);
-                        e = cross(Dir, d);
-                        lambda = ((Eye - Origine) * e) / (RepZ * e);
-                        NewPos = Origine + lambda * RepZ;
-                        Origine += NewPos - PrevPos;
-                        PrevPos = NewPos;
-                        manipulatedCallback();
-                        break;
-                    case 4:
-                        lambda = ((Origine - Eye) * RepX) / (Dir * RepX);
-                        Ur = Eye + lambda * Dir - Origine;
-                        Ur.normalize();
-                        Vr = cross(RepX, Ur);
-                        Vr.normalize();
+                case 1:
+                    // Alors on doit trouver le point sur la droite (Origine,RepX) qui est le plus proche du rayon
+                    d = cross(RepX, Dir);
+                    e = cross(Dir, d);
+                    lambda = ((Eye - Origine) * e) / (RepX * e);
+                    NewPos = Origine + lambda * RepX;
+                    Origine += NewPos - PrevPos;
+                    PrevPos = NewPos;
+                    manipulatedCallback();
+                    break;
+                case 2:
+                    // Alors on doit trouver le point sur la droite (Origine,RepY) qui est le plus proche du rayon
+                    d = cross(RepY, Dir);
+                    e = cross(Dir, d);
+                    lambda = ((Eye - Origine) * e) / (RepY * e);
+                    NewPos = Origine + lambda * RepY;
+                    Origine += NewPos - PrevPos;
+                    PrevPos = NewPos;
+                    manipulatedCallback();
+                    break;
+                case 3:
+                    // Alors on doit trouver le point sur la droite (Origine,RepZ) qui est le plus proche du rayon
+                    d = cross(RepZ, Dir);
+                    e = cross(Dir, d);
+                    lambda = ((Eye - Origine) * e) / (RepZ * e);
+                    NewPos = Origine + lambda * RepZ;
+                    Origine += NewPos - PrevPos;
+                    PrevPos = NewPos;
+                    manipulatedCallback();
+                    break;
+                case 4:
+                    lambda = ((Origine - Eye) * RepX) / (Dir * RepX);
+                    Ur = Eye + lambda * Dir - Origine;
+                    Ur.normalize();
+                    Vr = cross(RepX, Ur);
+                    Vr.normalize();
 
-                        RepY = uTeta * Ur + vTeta * Vr;
-                        RepY.normalize();
-                        RepZ = cross(RepX, RepY);
-                        manipulatedCallback();
-                        break;
-                    case 5:
-                        lambda = ((Origine - Eye) * RepY) / (Dir * RepY);
-                        Ur = Eye + lambda * Dir - Origine;
-                        Ur.normalize();
-                        Vr = cross(RepY, Ur);
-                        Vr.normalize();
+                    RepY = uTeta * Ur + vTeta * Vr;
+                    RepY.normalize();
+                    RepZ = cross(RepX, RepY);
+                    manipulatedCallback();
+                    break;
+                case 5:
+                    lambda = ((Origine - Eye) * RepY) / (Dir * RepY);
+                    Ur = Eye + lambda * Dir - Origine;
+                    Ur.normalize();
+                    Vr = cross(RepY, Ur);
+                    Vr.normalize();
 
-                        RepZ = uTeta * Ur + vTeta * Vr;
-                        RepZ.normalize();
-                        RepX = cross(RepY, RepZ);
-                        manipulatedCallback();
-                        break;
-                    case 6:
-                        lambda = ((Origine - Eye) * RepZ) / (Dir * RepZ);
-                        Ur = Eye + lambda * Dir - Origine;
-                        Ur.normalize();
-                        Vr = cross(RepZ, Ur);
-                        Vr.normalize();
+                    RepZ = uTeta * Ur + vTeta * Vr;
+                    RepZ.normalize();
+                    RepX = cross(RepY, RepZ);
+                    manipulatedCallback();
+                    break;
+                case 6:
+                    lambda = ((Origine - Eye) * RepZ) / (Dir * RepZ);
+                    Ur = Eye + lambda * Dir - Origine;
+                    Ur.normalize();
+                    Vr = cross(RepZ, Ur);
+                    Vr.normalize();
 
-                        RepX = uTeta * Ur + vTeta * Vr;
-                        RepX.normalize();
-                        RepY = cross(RepZ, RepX);
-                        manipulatedCallback();
-                        break;
+                    RepX = uTeta * Ur + vTeta * Vr;
+                    RepX.normalize();
+                    RepY = cross(RepZ, RepX);
+                    manipulatedCallback();
+                    break;
 
-                    case 7:
-                        d = cross(RepX, Dir);
-                        e = cross(Dir, d);
-                        lambda = ((Eye - Origine) * e) / (RepX * e);
-                        Xscale = lambda / (1.5 * display_scale);
-                        manipulatedCallback();
-                        break;
-                    case -7:
-                        d = cross(RepX, Dir);
-                        e = cross(Dir, d);
-                        lambda = ((Eye - Origine) * e) / (RepX * e);
-                        Xscale = -lambda / (1.5 * display_scale);
-                        manipulatedCallback();
-                        break;
+                case 7:
+                    d = cross(RepX, Dir);
+                    e = cross(Dir, d);
+                    lambda = ((Eye - Origine) * e) / (RepX * e);
+                    Xscale = lambda / (1.5 * display_scale);
+                    manipulatedCallback();
+                    break;
+                case -7:
+                    d = cross(RepX, Dir);
+                    e = cross(Dir, d);
+                    lambda = ((Eye - Origine) * e) / (RepX * e);
+                    Xscale = -lambda / (1.5 * display_scale);
+                    manipulatedCallback();
+                    break;
 
-                    case 8:
-                        d = cross(RepY, Dir);
-                        e = cross(Dir, d);
-                        lambda = ((Eye - Origine) * e) / (RepY * e);
-                        Yscale = lambda / (1.5 * display_scale);
-                        manipulatedCallback();
-                        break;
-                    case -8:
-                        d = cross(RepY, Dir);
-                        e = cross(Dir, d);
-                        lambda = ((Eye - Origine) * e) / (RepY * e);
-                        Yscale = -lambda / (1.5 * display_scale);
-                        manipulatedCallback();
-                        break;
+                case 8:
+                    d = cross(RepY, Dir);
+                    e = cross(Dir, d);
+                    lambda = ((Eye - Origine) * e) / (RepY * e);
+                    Yscale = lambda / (1.5 * display_scale);
+                    manipulatedCallback();
+                    break;
+                case -8:
+                    d = cross(RepY, Dir);
+                    e = cross(Dir, d);
+                    lambda = ((Eye - Origine) * e) / (RepY * e);
+                    Yscale = -lambda / (1.5 * display_scale);
+                    manipulatedCallback();
+                    break;
 
-                    case 9:
-                        d = cross(RepZ, Dir);
-                        e = cross(Dir, d);
-                        lambda = ((Eye - Origine) * e) / (RepZ * e);
-                        Zscale = lambda / (1.5 * display_scale);
-                        manipulatedCallback();
-                        break;
-                    case -9:
-                        d = cross(RepZ, Dir);
-                        e = cross(Dir, d);
-                        lambda = ((Eye - Origine) * e) / (RepZ * e);
-                        Zscale = -lambda / (1.5 * display_scale);
-                        manipulatedCallback();
-                        break;
+                case 9:
+                    d = cross(RepZ, Dir);
+                    e = cross(Dir, d);
+                    lambda = ((Eye - Origine) * e) / (RepZ * e);
+                    Zscale = lambda / (1.5 * display_scale);
+                    manipulatedCallback();
+                    break;
+                case -9:
+                    d = cross(RepZ, Dir);
+                    e = cross(Dir, d);
+                    lambda = ((Eye - Origine) * e) / (RepZ * e);
+                    Zscale = -lambda / (1.5 * display_scale);
+                    manipulatedCallback();
+                    break;
                 }
             }
         }
     }
 
 
-public
+    public
     slots:
 
 
-            signals
+    signals
     :
 
     void mouseReleased();

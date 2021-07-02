@@ -33,6 +33,7 @@ void Viewer::init() {
     glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 
     manipulator = new SimpleManipulator;
+
     //connect(manipulator , SIGNAL(moved()) , this , SLOT(updateFromCMInterface())); //TODO if interactive motion of selected points
     connect(manipulator, SIGNAL(mouseReleased()), this, SLOT(manipulatorReleased()));
 
@@ -115,6 +116,7 @@ void Viewer::mousePressEvent(QMouseEvent *e) {
             camera_position = camera()->position();
         } else {
             manipulator->mousePressEvent(e, camera());
+            update();
         }
     } else {
         QGLViewer::mousePressEvent(e);
@@ -154,6 +156,10 @@ void Viewer::mouseMoveEvent(QMouseEvent *e) {
             qglviewer::Vec cam_pos = camera_position + direction;
             camera()->setPosition(cam_pos);
             camera()->lookAt( qglviewer::Vec ( cam_pos.x, cam_pos.y, 0. ) );
+            update();
+        } else {
+
+            QGLViewer::mouseMoveEvent(e);
             update();
         }
     }
@@ -530,6 +536,7 @@ void Viewer::setMode( Mode dim ){
     dimension = dim;
     if( dimension == DIM3D ) {
         camera()->setType(Camera::PERSPECTIVE);
+        manipulator->setDim3D();
         updateViewer();
     }
     else {
@@ -537,6 +544,7 @@ void Viewer::setMode( Mode dim ){
         camera()->lookAt(qglviewer::Vec(0.,0.,0.));
         camera()->setUpVector(qglviewer::Vec(0.,1.,0.));
         camera()->setType(Camera::ORTHOGRAPHIC);
+        manipulator->setDim2D();
         updateViewer();
     }
 
